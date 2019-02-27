@@ -26,7 +26,7 @@ $ ./test3 wlp5s0 or sudo ./test3 wlp5s0
 #include <linux/if_arp.h>
 #include <arpa/inet.h>
 
-#define NIC_NAME "mon0"
+#define NIC_NAME "wlan0"
 
 /*our MAC address*/
 static uint8_t gu8a_src_mac[6] = {0xF8, 0x1A, 0x67, 0xB7, 0xeB, 0x0B};
@@ -40,6 +40,7 @@ int32_t get_nic_index(uint8_t *pu8_nic_card_name);
 
 int main(void)
 {
+    char *dev = argv[1];
     struct sockaddr_ll s_dest_addr;
     int32_t s32_sock = -1;
     int32_t s32_res = -1;
@@ -65,7 +66,7 @@ int main(void)
     s_dest_addr.sll_family = AF_PACKET;
     /*we don't use a protocol above ethernet layer, just use anything here*/
     s_dest_addr.sll_protocol = htons(ETH_P_ALL);
-    s_dest_addr.sll_ifindex = get_nic_index((uint8_t *)NIC_NAME);
+    s_dest_addr.sll_ifindex = get_nic_index(dev);
     s_dest_addr.sll_hatype = ARPHRD_ETHER;
     s_dest_addr.sll_pkttype = PACKET_OTHERHOST; //PACKET_OUTGOING
     s_dest_addr.sll_halen = ETH_ALEN;
@@ -80,7 +81,7 @@ int main(void)
     s_dest_addr.sll_addr[6] = 0x00; /*not used*/
     s_dest_addr.sll_addr[7] = 0x00; /*not used*/
 
-    printf("******Sending data using raw socket over '" NIC_NAME "'\n");
+    printf("******Sending data using raw socket over '" %s "'\n",dev);
 
     while (1)
     {
@@ -119,8 +120,8 @@ int main(void)
             perror("Socket send failed");
             goto LABEL_CLEAN_EXIT;
         }
-
-        for (int i = 0; i < 331; i++)
+        int i = 0;
+        for (i=0 ; i < 331; i++)
             printf("%x ", data[i]);
 
         printf("\n\n");
