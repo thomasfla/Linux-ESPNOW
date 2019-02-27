@@ -34,7 +34,7 @@ $ ./test3 wlp5s0 or sudo ./test3 wlp5s0
 
 #define PACKET_LENGTH 400 //Approximate
 #define MYDATA 18         //0x12
-
+#define MAX_PACKET_LEN 1000
 /*our MAC address*/
 //{0xF8, 0x1A, 0x67, 0xB7, 0xeB, 0x0B};
 
@@ -69,24 +69,15 @@ struct newpacket
     unsigned char newdata[PACKET_LENGTH];
 } mynewpacket;
 
-void printfstruct()
+void print_packet(uint8_t * data, int len)
 {
     printf("----------------------------new packet-----------------------------------\n");
-
-    if (MYDATA == mynewpacket.newdata[197]) //Filtering espnow packets
+    int i;
+    for (i = 0; i < len; i++)
     {
-        if (MYDATA == mynewpacket.newdata[200]) //Filtering espnow packets
-        {
-            int i;
-            for (i = 0; i < PACKET_LENGTH; i++)
-            {
-                if (i % 16 == 0)
-                    printf("\n");
-                printf("%02x ", mynewpacket.newdata[i]);
-            }
-        }
+        if (i % 16 == 0) printf("\n");
+        printf("0x%02x, ", data[i]);
     }
-
     printf("\n\n");
 }
 
@@ -118,6 +109,7 @@ int create_raw_socket(char *dev)
 
 int main(int argc, char **argv)
 {
+    uint8_t buff[MAX_PACKET_LEN]={0};
     int sock_fd;
     char *dev = argv[1];
 
@@ -131,19 +123,17 @@ int main(int argc, char **argv)
         socklen_t u32_sender_addr_len = sizeof(s_sender_addr);
         (void)memset(&s_sender_addr, 0, sizeof(s_sender_addr));
 
-        int x = recvfrom(sock_fd, &mynewpacket, sizeof(struct newpacket), 0, (struct sockaddr *)&s_sender_addr, &u32_sender_addr_len);
-
-        if (-1 == x)
+        int len = recvfrom(sock_fd, buff, MAX_PACKET_LEN, MSG_TRUNC, (struct sockaddr *)&s_sender_addr, &u32_sender_addr_len);
+        if (len<0)
         {
-            perror("Socket receive failed");
+            perror("Socket receive failed or error");
             break;
         }
-        else if (x < 0)
+        else
         {
-            perror("Socket receive, error ");
+            printf("len:%d\n",len);
+            print_packet(buff, len);
         }
-
-        printfstruct();
     }
     close(sock_fd);
     return 0;
