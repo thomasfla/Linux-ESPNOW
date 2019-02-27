@@ -38,7 +38,7 @@ static uint8_t gu8a_dest_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 int32_t get_nic_index(uint8_t *pu8_nic_card_name);
 
-int main(void)
+int main(int argc, char **argv)
 {
     char *dev = argv[1];
     struct sockaddr_ll s_dest_addr;
@@ -81,7 +81,7 @@ int main(void)
     s_dest_addr.sll_addr[6] = 0x00; /*not used*/
     s_dest_addr.sll_addr[7] = 0x00; /*not used*/
 
-    printf("******Sending data using raw socket over '" %s "'\n",dev);
+    printf("******Sending data using raw socket over  %s \n",dev);
 
     while (1)
     {
