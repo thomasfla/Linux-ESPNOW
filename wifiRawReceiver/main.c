@@ -77,7 +77,8 @@ void printfstruct()
     {
         if (MYDATA == mynewpacket.newdata[200]) //Filtering espnow packets
         {
-            for (int i = 0; i < PACKET_LENGTH; i++)
+            int i;
+            for (i = 0; i < PACKET_LENGTH; i++)
             {
                 if (i % 16 == 0)
                     printf("\n");
