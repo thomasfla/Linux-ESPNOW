@@ -1,20 +1,23 @@
 /*
-Modified by FCaminade
+Florenc Caminade
+Thomas FLayols
 
-Sources : 
+Receive raw 802.11 packet including ESP-NOW vendor specific action frame.
+https://hackaday.io/project/161896
+https://github.com/thomasfla/Linux-ESPNOW
+
+Adapted from : 
 https://stackoverflow.com/questions/10824827/raw-sockets-communication-over-wifi-receiver-not-able-to-receive-packets
 
 1/Find your wifi interface:
 $ iwconfig
 
-2/Setup the bord in monitor mode :
+2/Setup your interface in monitor mode :
 $ sudo ifconfig wlp5s0 down
 $ sudo iwconfig wlp5s0 mode monitor
 $ sudo ifconfig wlp5s0 up
 
-3/Launch the test with the good rights! :
-$ ./test3 wlp5s0 or sudo ./test3 wlp5s0
-
+3/Run this code as root 
 */
 
 #include <stdint.h>
