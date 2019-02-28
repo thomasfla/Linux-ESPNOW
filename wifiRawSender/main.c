@@ -1,20 +1,23 @@
 /*
-Modified by FCaminade
+Florenc Caminade
+Thomas FLayols
 
-Sources : 
+Send ESP-NOW vendor specific action frame example
+https://hackaday.io/project/161896
+https://github.com/thomasfla/Linux-ESPNOW
+
+Adapted from : 
 https://stackoverflow.com/questions/10824827/raw-sockets-communication-over-wifi-receiver-not-able-to-receive-packets
 
 1/Find your wifi interface:
 $ iwconfig
 
-2/Setup the board in monitor mode :
+2/Setup your interface in monitor mode :
 $ sudo ifconfig wlp5s0 down
 $ sudo iwconfig wlp5s0 mode monitor
 $ sudo ifconfig wlp5s0 up
 
-3/Launch the test with the good rights! :
-$ ./test3 wlp5s0 or sudo ./test3 wlp5s0
-
+3/Run this code as root
 */
 #include <stdint.h>
 #include <stdio.h>
@@ -27,16 +30,8 @@ $ ./test3 wlp5s0 or sudo ./test3 wlp5s0
 #include <arpa/inet.h>
 #include <assert.h>
 
-#define NIC_NAME "wlan0"
 
-/*our MAC address*/
-//static uint8_t gu8a_src_mac[6] = {0xF8,0x1A,0x67,0xB7,0xeB,0x0B};
-//static uint8_t gu8a_src_mac[6] = {0x84,0xF3,0xEB,0x73,0x55,0x0D};
-
-/*other host MAC address*/
-//static uint8_t gu8a_dest_mac[6] = {0x84,0xF3,0xEB,0x73,0x55,0x0D};
 static uint8_t gu8a_dest_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-//static uint8_t gu8a_dest_mac[6] = {0x00,0x0C,0xE6,0x02,0x4F,0x76};//laptop
 
 int create_raw_socket(char *dev)
 {
