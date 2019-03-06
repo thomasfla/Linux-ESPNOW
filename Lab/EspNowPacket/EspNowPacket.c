@@ -30,14 +30,6 @@ $ sudo ifconfig wlp5s0 up
 #include <arpa/inet.h>
 #include <assert.h>
 
-#include "asm/types.h"
-#include "linux/net_tstamp.h"
-#include "linux/errqueue.h"
-
-#ifndef SIOCSHWTSTAMP
-# define SIOCSHWTSTAMP 0x89b0
-#endif
-
 int packetSetUp(uint8_t* packet, uint8_t* mac_dest, uint8_t* mac_src, uint8_t* payload, int len );
 
 static uint8_t mac_src[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -87,8 +79,6 @@ int create_raw_socket(char *dev)
 
     rb = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
     assert(rb != -1); //abort if error
-
-    ioctl(fd, SIOCSHWTSTAMP, HWTSTAMP_TX_OFF);
 
     return fd;
 }
