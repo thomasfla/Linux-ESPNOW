@@ -47,6 +47,7 @@ $ sudo ifconfig wlp5s0 up
 //filter action frame packets
   //Equivalent for tcp dump :
     //type 0 subtype 0xd0 and wlan[24:4]=0x7f18fe34 and wlan[32]=221 and wlan[33:4]&0xffffff = 0x18fe34 and wlan[37]=0x4
+//NB : There is no filter on source or destination addresses, so this code will 'receive' the action frames sent by this computer...
 #define FILTER_LENGTH 20
 static struct sock_filter bpfcode[FILTER_LENGTH] = {
   { 0x30, 0, 0, 0x00000003 },	// ldb [3]	// radiotap header length : MS byte
@@ -117,7 +118,7 @@ int create_raw_socket(char *dev, struct sock_fprog *bpf)
 int main(int argc, char **argv)
 {
     assert(argc == 2);
-    
+
     uint8_t buff[MAX_PACKET_LEN] = {0};
     int sock_fd;
     char *dev = argv[1];

@@ -32,3 +32,5 @@
 *.app
 
 wifiRawReceiver/bin/
+
+wifiRawEcho/bin/
