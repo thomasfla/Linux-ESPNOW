@@ -33,6 +33,8 @@ $ sudo ifconfig wlp5s0 up
 #include <assert.h>
 #include <linux/filter.h>
 
+#include "packets.h"
+
 #define MY_MAC 0xf81a67b7eb0b
 
 #define MAC_2_MSBytes(MAC)  ((uint64_t) MAC & (uint64_t) 0xffff00000000)>>(8*4)
