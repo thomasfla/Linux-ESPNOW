@@ -9,7 +9,7 @@
 void init_ESPNOW_packet(ESPNOW_packet *packet) {
 	packet->radiotap.version = 0x00;
 	packet->radiotap.pad = 0x00;
-	packet->radiotap.length = 14;
+	packet->radiotap.length = sizeof(packet->radiotap);
 	packet->radiotap.present_1 = 0x0000000e;
 	packet->radiotap.flags = 0x10;
 	packet->radiotap.datarate = 0x0c;
@@ -54,57 +54,16 @@ int IEEE80211_radiotap_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211
 	
 	memcpy(bytes, &radiotap, len);
 	
-	return sizeof(len);
+	return len;
 }
 
 int IEEE80211_wlan_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_wlan wlan) {
-	assert(max_length > 28);
-
-	bytes[0] = wlan.type;
-	bytes[1] = wlan.flags;
-	bytes[2] = byte_n(wlan.duration, 0);
-	bytes[3] = byte_n(wlan.duration, 1);
-	memcpy(bytes+4, wlan.da, sizeof(uint8_t)*6);
-	memcpy(bytes+10, wlan.sa, sizeof(uint8_t)*6);
-	memcpy(bytes+16, wlan.bssid, sizeof(uint8_t)*6);
-	bytes[22] = byte_n(wlan.seq, 0);
-	bytes[23] = byte_n(wlan.seq, 1);
-
-	int len = IEEE80211_actionframe_to_bytes(bytes+24, max_length-24, wlan.actionframe);
+	int len = sizeof(wlan);	
+	assert(max_length > len);	
 	
-	//bytes[24+len+1] = byte_n(wlan.fcs,0);
-	//bytes[24+len+2] = byte_n(wlan.fcs,1);
-	//bytes[24+len+3] = byte_n(wlan.fcs,2);
-	//bytes[24+len+4] = byte_n(wlan.fcs,3);
+	memcpy(bytes, &wlan, len);
 	
-	return 24+len +1;
-}
-
-int IEEE80211_actionframe_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_actionframe actionframe) {
-	assert(max_length > 4);
-	
-	
-	bytes[0] = actionframe.category_code;
-	memcpy(bytes+1, actionframe.OUI, sizeof(uint8_t)*3);
-	
-	memcpy(bytes+4, actionframe.unknown_bytes, sizeof(uint8_t)*4);
-
-	int len = IEEE80211_vendorspecific_to_bytes(bytes+8, max_length-8, actionframe.content);
-	
-	return 7+len +1;
-}
-
-int IEEE80211_vendorspecific_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_vendorspecific vendorspecific) {
-	assert(max_length > 10);
-	
-	bytes[0] = vendorspecific.elementID;
-	bytes[1] = vendorspecific.length;
-	memcpy(bytes+2, vendorspecific.OUI, sizeof(uint8_t)*3);
-	bytes[5] = vendorspecific.type;
-	bytes[6] = vendorspecific.version;
-	memcpy(bytes+7, vendorspecific.payload, sizeof(uint8_t)*250);
-	
-	return 6 + 250 +1;
+	return len;	
 }
 
 

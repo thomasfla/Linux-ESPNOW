@@ -32,7 +32,7 @@ void print_packet(uint8_t *data, int len)
 
 
 static uint8_t src_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
-static uint8_t dest_mac[6] = {0x84, 0xf3, 0xeb, 0x73, 0x55, 0xed};
+static uint8_t dest_mac[6] = {0x84, 0xf3, 0xeb, 0x73, 0x55, 0x0d};
 
 
 int create_raw_socket(char *dev)
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
             } else {
               printf("Echo sent\n");
             }
-		sleep(1);
+		sleep(0.1);
     }
 
 LABEL_CLEAN_EXIT:

@@ -29,9 +29,9 @@ struct IEEE80211_vendorspecific {
 } __attribute__((__packed__));
 
 struct IEEE80211_actionframe {
-	uint8_t unknown_bytes[4];
 	uint8_t category_code;	//0x7f
     uint8_t OUI[3];			//0x18,0xfe, 0x34
+	uint8_t unknown_bytes[4];
 	struct IEEE80211_vendorspecific content;
 } __attribute__((__packed__));
 
@@ -63,10 +63,6 @@ void init_ESPNOW_packet(ESPNOW_packet *packet);
 int packet_to_bytes(uint8_t *bytes, int max_length, ESPNOW_packet packet);
 
 int IEEE80211_wlan_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_wlan wlan);
-
-int IEEE80211_actionframe_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_actionframe actionframe);
-
-int IEEE80211_vendorspecific_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_vendorspecific vendorspecific);
 
 int IEEE80211_radiotap_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_radiotap radiotap);
 
