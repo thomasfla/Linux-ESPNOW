@@ -9,14 +9,14 @@ struct IEEE80211_radiotap {
     uint8_t pad;                    //= 0;
     uint16_t length;                //= 0x00,0x26;
     uint32_t present_1;             //= {0x2f, 0x40, 0x00, 0xa0};
-    uint32_t present_2;             //= {0x20, 0x08, 0x00, 0xa0};
-    uint32_t present_3;             //= {0x20, 0x08, 0x00, 0x00};
-	uint64_t timestamp;
+    //uint32_t present_2;             //= {0x20, 0x08, 0x00, 0xa0};
+    //uint32_t present_3;             //= {0x20, 0x08, 0x00, 0x00};
+	//uint64_t timestamp;
     uint8_t flags;          		//= 10;
     uint8_t datarate;               //0x0c
     uint16_t channel_freq;          //0x6c, 0x09
     uint16_t channel_flags_quarter; //0xc0, 0x00
-};
+} __attribute__((__packed__));
 
 struct IEEE80211_vendorspecific {
 	uint8_t elementID;		//0xdd
@@ -26,14 +26,14 @@ struct IEEE80211_vendorspecific {
 	uint8_t version;		//0x01
 	uint8_t payload[250];
 	
-};
+} __attribute__((__packed__));
 
 struct IEEE80211_actionframe {
 	uint8_t unknown_bytes[4];
 	uint8_t category_code;	//0x7f
     uint8_t OUI[3];			//0x18,0xfe, 0x34
 	struct IEEE80211_vendorspecific content;
-};
+} __attribute__((__packed__));
 
 
 struct IEEE80211_wlan {
@@ -48,7 +48,7 @@ struct IEEE80211_wlan {
 	struct IEEE80211_actionframe actionframe;
 
     uint32_t fcs; //0x1c, 0xd5, 0x35, 0xd3
-};
+} __attribute__((__packed__));
 
 
 typedef struct {
