@@ -9,10 +9,10 @@
 void init_ESPNOW_packet(ESPNOW_packet *packet) {
 	packet->radiotap.version = 0x00;
 	packet->radiotap.pad = 0x00;
-	packet->radiotap.length = 30;
-	packet->radiotap.present_1 = 0xa000000f;
-	packet->radiotap.present_2 = 0xa0000000;
-	packet->radiotap.present_3 = 0x00000000;
+	packet->radiotap.length = 14;
+	packet->radiotap.present_1 = 0x0000000e;//0xa000000f;
+	packet->radiotap.present_2 = 0x00000000;
+	packet->radiotap.present_3 = 0x0000000e;
 
 	packet->radiotap.timestamp = time(NULL);
 
@@ -64,7 +64,7 @@ int IEEE80211_radiotap_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211
 	bytes[5] = byte_n(radiotap.present_1, 1);
 	bytes[6] = byte_n(radiotap.present_1, 2);
 	bytes[7] = byte_n(radiotap.present_1, 3);
-	bytes[8] = byte_n(radiotap.present_2, 0);
+	/*bytes[8] = byte_n(radiotap.present_2, 0);
 	bytes[9] = byte_n(radiotap.present_2, 1);
 	bytes[10] = byte_n(radiotap.present_2, 2);
 	bytes[11] = byte_n(radiotap.present_2, 3);
@@ -79,15 +79,15 @@ int IEEE80211_radiotap_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211
 	bytes[20] = byte_n(radiotap.timestamp, 4);
 	bytes[21] = byte_n(radiotap.timestamp, 5);
 	bytes[22] = byte_n(radiotap.timestamp, 6);
-	bytes[23] = byte_n(radiotap.timestamp, 6);
-	bytes[24] = radiotap.flags;
-	bytes[25] = radiotap.datarate;
-	bytes[26] = byte_n(radiotap.channel_freq, 0);
-	bytes[27] = byte_n(radiotap.channel_freq, 1);
-	bytes[28] = byte_n(radiotap.channel_flags_quarter, 0);
-	bytes[29] = byte_n(radiotap.channel_flags_quarter, 1);
+	bytes[23] = byte_n(radiotap.timestamp, 6);*/
+	bytes[8] = radiotap.flags;
+	bytes[9] = radiotap.datarate;
+	bytes[10] = byte_n(radiotap.channel_freq, 0);
+	bytes[11] = byte_n(radiotap.channel_freq, 1);
+	bytes[12] = byte_n(radiotap.channel_flags_quarter, 0);
+	bytes[13] = byte_n(radiotap.channel_flags_quarter, 1);
 
-	return 29 +1;
+	return 13 +1;
 }
 
 int IEEE80211_wlan_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_wlan wlan) {
@@ -105,12 +105,12 @@ int IEEE80211_wlan_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_wla
 
 	int len = IEEE80211_actionframe_to_bytes(bytes+24, max_length-24, wlan.actionframe);
 	
-	bytes[24+len+1] = byte_n(wlan.fcs,0);
-	bytes[24+len+2] = byte_n(wlan.fcs,1);
-	bytes[24+len+3] = byte_n(wlan.fcs,2);
-	bytes[24+len+4] = byte_n(wlan.fcs,3);
+	//bytes[24+len+1] = byte_n(wlan.fcs,0);
+	//bytes[24+len+2] = byte_n(wlan.fcs,1);
+	//bytes[24+len+3] = byte_n(wlan.fcs,2);
+	//bytes[24+len+4] = byte_n(wlan.fcs,3);
 	
-	return 24+len+4 +1;
+	return 24+len +1;
 }
 
 int IEEE80211_actionframe_to_bytes(uint8_t *bytes, int max_length, struct IEEE80211_actionframe actionframe) {

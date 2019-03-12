@@ -31,7 +31,8 @@ void print_packet(uint8_t *data, int len)
 }
 
 
-static uint8_t gu8a_dest_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
+static uint8_t src_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
+static uint8_t dest_mac[6] = {0x84, 0xf3, 0xeb, 0x73, 0x55, 0xed};
 
 
 int create_raw_socket(char *dev)
@@ -60,12 +61,12 @@ int create_raw_socket(char *dev)
     s_dest_addr.sll_pkttype = PACKET_OTHERHOST; //PACKET_OUTGOING
     s_dest_addr.sll_halen = ETH_ALEN;
     //MAC - begin
-    s_dest_addr.sll_addr[0] = gu8a_dest_mac[0];
-    s_dest_addr.sll_addr[1] = gu8a_dest_mac[1];
-    s_dest_addr.sll_addr[2] = gu8a_dest_mac[2];
-    s_dest_addr.sll_addr[3] = gu8a_dest_mac[3];
-    s_dest_addr.sll_addr[4] = gu8a_dest_mac[4];
-    s_dest_addr.sll_addr[5] = gu8a_dest_mac[5];
+    s_dest_addr.sll_addr[0] = dest_mac[0];
+    s_dest_addr.sll_addr[1] = dest_mac[1];
+    s_dest_addr.sll_addr[2] = dest_mac[2];
+    s_dest_addr.sll_addr[3] = dest_mac[3];
+    s_dest_addr.sll_addr[4] = dest_mac[4];
+    s_dest_addr.sll_addr[5] = dest_mac[5];
     //MAC - end
     s_dest_addr.sll_addr[6] = 0x00; //not used
     s_dest_addr.sll_addr[7] = 0x00; //not used
@@ -79,7 +80,7 @@ int create_raw_socket(char *dev)
 int32_t send_echo(int sock_fd, uint8_t *data, int len) {
       int32_t s32_res;
 
-      s32_res = sendto(sock_fd,data,len,0,NULL,0);
+      s32_res = write(sock_fd,data,len);
 
       return s32_res;
 }
@@ -111,9 +112,9 @@ int main(int argc, char **argv)
     int Counter = 0;
 	ESPNOW_packet my_packet;
 	init_ESPNOW_packet(&my_packet);
-	memcpy(my_packet.wlan.da, gu8a_dest_mac, sizeof(uint8_t)*6);
-	memcpy(my_packet.wlan.sa, gu8a_dest_mac, sizeof(uint8_t)*6);
-	memcpy(my_packet.wlan.bssid, gu8a_dest_mac, sizeof(uint8_t)*6);
+	memcpy(my_packet.wlan.da, dest_mac, sizeof(uint8_t)*6);
+	memcpy(my_packet.wlan.sa, src_mac, sizeof(uint8_t)*6);
+	memcpy(my_packet.wlan.bssid, dest_mac, sizeof(uint8_t)*6);
 	uint8_t raw_bytes[400];
 	int len = packet_to_bytes(raw_bytes, 400, my_packet);
 
