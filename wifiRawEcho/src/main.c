@@ -15,21 +15,7 @@ Etienne Arlaud
 #include <linux/filter.h>
 #include <sys/time.h>   
 
-#include "packets.h"
-
-void print_packet(uint8_t *data, int len)
-{
-    printf("----------------------------new packet-----------------------------------\n");
-    int i;
-    for (i = 0; i < len; i++)
-    {
-        if (i % 16 == 0)
-            printf("\n");
-        printf("0x%02x, ", data[i]);
-    }
-    printf("\n\n");
-}
-
+#include "ESPNOW_packet.h"
 
 static uint8_t src_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
 static uint8_t dest_mac[6] = {0x84, 0xf3, 0xeb, 0x73, 0x55, 0x0d};
@@ -123,7 +109,7 @@ int main(int argc, char **argv)
 
             printf("Send : %d\n", Counter++);
             s32_res = send_echo(sock_fd, raw_bytes, len);
-			print_packet(raw_bytes, len);
+			print_raw_packet(raw_bytes, len);
 
             if (-1 == s32_res)
             {

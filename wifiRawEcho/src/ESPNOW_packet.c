@@ -1,4 +1,4 @@
-#include "packets.h"
+#include "ESPNOW_packet.h"
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -56,3 +56,18 @@ int packet_to_bytes(uint8_t *bytes, int max_length, ESPNOW_packet packet) {
 	return len;
 }
 
+
+void print_raw_packet(uint8_t *data, int len)
+{
+    printf("----------------------new packet (len : %d)---------------------------\n", len);
+    int i;
+    for (i = 0; i < len; i++)
+    {
+        if (i % 16 == 0)
+            printf("\n");
+		else if(i % 8 == 0)
+			printf(" ");
+        printf("0x%02x, ", data[i]);
+    }
+    printf("\n\n");
+}

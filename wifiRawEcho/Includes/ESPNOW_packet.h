@@ -1,5 +1,5 @@
-#ifndef PACKETS_H
-#define PACKETS_H
+#ifndef ESPNOW_PACKET_H
+#define ESPNOW_PACKET_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -32,7 +32,6 @@ struct IEEE80211_actionframe {
 	struct IEEE80211_vendorspecific content;
 } __attribute__((__packed__));
 
-
 struct IEEE80211_wlan {
 	uint8_t type;					//0xd0
     uint8_t flags;            		//0x00
@@ -44,7 +43,6 @@ struct IEEE80211_wlan {
 	struct IEEE80211_actionframe actionframe;
     uint32_t fcs;				//Random values : will be recalculated by the hrdw.
 } __attribute__((__packed__));
-
 
 typedef struct {
 
@@ -58,5 +56,6 @@ void init_ESPNOW_packet(ESPNOW_packet *packet);
 
 int packet_to_bytes(uint8_t *bytes, int max_length, ESPNOW_packet packet);
 
+void print_raw_packet(uint8_t *data, int len);
 
 #endif

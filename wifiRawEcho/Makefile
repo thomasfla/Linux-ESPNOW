@@ -8,7 +8,7 @@ default: all
 %.o: src/%.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o bin/$@ -c $^
 
-app: main.o packets.o
+app: main.o ESPNOW_packet.o
 	$(CC) $(CFLAGS) -o bin/exec $(addprefix bin/,$^)
 
 
