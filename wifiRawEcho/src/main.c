@@ -17,20 +17,66 @@ Etienne Arlaud
 
 #include "ESPNOW_packet.h"
 
+
+#define MY_MAC 0xf81a67b7eb0b
 static uint8_t src_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
 static uint8_t dest_mac[6] = {0x84, 0xf3, 0xeb, 0x73, 0x55, 0x0d};
 
-ESPNOW_packet my_packet;
+#define MAX_PACKET_LEN 1000
+
+#define FILTER_LENGTH 34
+#define MAC_2_MSBytes(MAC)  ((uint64_t) MAC & (uint64_t) 0xffff00000000)>>(8*4)
+#define MAC_4_LSBytes(MAC)  (uint64_t) MAC & (((uint64_t) 1<<(4*8))-1)
+//generated with tcpdump -i wlp5s0 'type 0 subtype 0xd0 and wlan[24:4]=0x7f18fe34 and wlan[32]=221 and wlan[33:4]&0xffffff = 0x18fe34 and wlan[37]=0x4 and wlan dst f8:1a:67:b7:eb:0b' -dd
+static struct sock_filter bpfcode[FILTER_LENGTH] = {
+  { 0x30, 0, 0, 0x00000003 },
+  { 0x64, 0, 0, 0x00000008 },
+  { 0x7, 0, 0, 0x00000000 },
+  { 0x30, 0, 0, 0x00000002 },
+  { 0x4c, 0, 0, 0x00000000 },
+  { 0x2, 0, 0, 0x00000000 },
+  { 0x7, 0, 0, 0x00000000 },
+  { 0x50, 0, 0, 0x00000000 },
+  { 0x54, 0, 0, 0x000000fc },
+  { 0x15, 0, 23, 0x000000d0 },
+  { 0x40, 0, 0, 0x00000018 },
+  { 0x15, 0, 21, 0x7f18fe34 },
+  { 0x50, 0, 0, 0x00000020 },
+  { 0x15, 0, 19, 0x000000dd },
+  { 0x40, 0, 0, 0x00000021 },
+  { 0x54, 0, 0, 0x00ffffff },
+  { 0x15, 0, 16, 0x0018fe34 },
+  { 0x50, 0, 0, 0x00000025 },
+  { 0x15, 0, 14, 0x00000004 },
+  { 0x50, 0, 0, 0x00000000 },
+  { 0x45, 12, 0, 0x00000004 },
+  { 0x45, 0, 6, 0x00000008 },
+  { 0x50, 0, 0, 0x00000001 },
+  { 0x45, 0, 4, 0x00000001 },
+  { 0x40, 0, 0, 0x00000012 },
+  { 0x15, 0, 7, 0x67b7eb0b },
+  { 0x48, 0, 0, 0x00000010 },
+  { 0x15, 4, 5, 0x0000f81a },
+  { 0x40, 0, 0, 0x00000006 },
+  { 0x15, 0, 3, MAC_4_LSBytes(MY_MAC) },
+  { 0x48, 0, 0, 0x00000004 },
+  { 0x15, 0, 1, MAC_2_MSBytes(MY_MAC) },
+  { 0x6, 0, 0, 0x00040000 },
+  { 0x6, 0, 0, 0x00000000 },
+};
+
+ESPNOW_packet echo_packet;
 uint8_t raw_bytes[400];
 
-int create_raw_socket(char *dev)
+int create_raw_socket(char *dev, struct sock_fprog *bpf)
 {
     struct sockaddr_ll s_dest_addr;
     struct ifreq ifr;
 	
-    int fd, 	//file descriptor
+    int fd, 			//file descriptor
 		ioctl_errno,	//ioctl errno
-		bind_errno;		//bind errno
+		bind_errno,		//bind errno
+		filter_errno;	//attach filter errno
 	
 	bzero(&s_dest_addr, sizeof(s_dest_addr));
     bzero(&ifr, sizeof(ifr));
@@ -55,16 +101,11 @@ int create_raw_socket(char *dev)
 
     bind_errno = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
     assert(bind_errno >= 0);	//abort if error
-
+	
+	filter_errno = setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER, bpf, sizeof(*bpf));
+    assert(filter_errno >= 0);
+	
     return fd;
-}
-
-int32_t send_echo(int sock_fd, uint8_t *data, int len) {
-      int32_t s32_res;
-
-      s32_res = write(sock_fd,data,len);
-
-      return s32_res;
 }
 
 
@@ -74,12 +115,15 @@ int main(int argc, char **argv)
 
     char *dev = argv[1];
 
-	int packets_sent = 0;	
+	int packets_received = 0;	
 	
+	uint8_t buff[MAX_PACKET_LEN] = {0};
     int sock_fd = -1;
     int s32_res = -1;
+	
+	struct sock_fprog bpf = {FILTER_LENGTH, bpfcode};
 
-    sock_fd = create_raw_socket(dev); /* Creating the raw socket */
+    sock_fd = create_raw_socket(dev, &bpf); /* Creating the raw socket */
 
     if (sock_fd < 0)
     {
@@ -93,27 +137,40 @@ int main(int argc, char **argv)
 
     sleep(1);
 	
-
-	init_ESPNOW_packet(&my_packet);
-	memcpy(my_packet.wlan.da, dest_mac, sizeof(uint8_t)*6);
-	memcpy(my_packet.wlan.sa, src_mac, sizeof(uint8_t)*6);
-	memcpy(my_packet.wlan.bssid, dest_mac, sizeof(uint8_t)*6);
-	int len = packet_to_bytes(raw_bytes, 400, my_packet);
+	//init answer packet
+	init_ESPNOW_packet(&echo_packet);
+	memcpy(echo_packet.wlan.da, dest_mac, sizeof(uint8_t)*6);
+	memcpy(echo_packet.wlan.sa, src_mac, sizeof(uint8_t)*6);
+	memcpy(echo_packet.wlan.bssid, dest_mac, sizeof(uint8_t)*6);
+	
 
     while (1)
     {
-
-            printf("Send : %d\n", packets_sent++);
-            s32_res = send_echo(sock_fd, raw_bytes, len);
-			print_raw_packet(raw_bytes, len);
+		int len = recvfrom(sock_fd, buff, MAX_PACKET_LEN, MSG_TRUNC, NULL, 0);
+			
+		if (len < 0)
+        {
+            perror("Socket receive failed or error");
+            goto LABEL_CLEAN_EXIT;
+        }            
+		else if(len > 77)
+        {
+            printf("Receive packet number : %d\n", ++packets_received);
+            print_raw_packet(buff, len);
+			
+			//generate echo
+			echo_packet.wlan.actionframe.content.payload[0] = buff[77];
+			int mypacket_len = packet_to_bytes(raw_bytes, 400, echo_packet);
+            s32_res = write(sock_fd, raw_bytes, mypacket_len);
 
             if (-1 == s32_res)
             {
                 perror("Socket send failed");
                 goto LABEL_CLEAN_EXIT;
             } else {
-              printf("Echo sent\n");
+              printf("Echo sent\n\n\n");
             }
+        }
 		sleep(0.1);
     }
 
