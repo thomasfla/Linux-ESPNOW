@@ -17,21 +17,25 @@ extern "C" {
 
 #include <Ticker.h>  //Ticker Library
 
+Ticker blinker;
+
 #define WIFI_CHANNEL 1
 
 //byte selfmac[6] = {0xf8, 0x1a, 0x67, 0xb7, 0xeb, 0x0b};
 byte selfmac[6] = {0x84, 0xF3, 0xEB, 0x73, 0x55, 0x0D};
 
-#define NB_TRIES 2000
+#define NB_TRIES 20
 
 #define HISTO_INF 400
-#define HISTO_SUP 1200
-#define HISTO_N_STEP 80
+#define HISTO_SUP 5000
+#define HISTO_N_STEP 10
 
 int histogram[HISTO_N_STEP];
 int histogram_higher;
 int histogram_lower;
 int error_nb;
+int receiveNb;
+long int avg;
 
 //MAC ADDRESS OF THE DEVICE YOU ARE SENDING TO
 //byte remoteDevice[6] = {0x84, 0xF3, 0xEB, 0xB3, 0x66, 0xCC};
@@ -43,14 +47,18 @@ const byte dataLength = 250;
 byte cnt = 0;
 byte txrxData[dataLength];
 long timerData[3];
-unsigned long lastsend;
+unsigned long n_sent;
 int error;
 
 void init_histo() {
-  bzero(histogram, HISTO_N_STEP*sizeof(histogram));
+  for(int i=0;i<HISTO_N_STEP;i++) {
+    histogram[i] = 0;
+  }
   histogram_higher = 0;
   histogram_lower = 0;
   error_nb=0;
+  receiveNb=0;
+  avg=0;
 }
 
 int fill_histo(long value) {
@@ -77,8 +85,34 @@ void send_histo() {
     Serial.printf("%d\t", histogram[i]);
   }
   Serial.println();
+  Serial.printf("Average :\t%d", receiveNb != 0 ? avg/receiveNb : -1);
+  Serial.println();
   Serial.printf("Errors :\t%d", error_nb);
   Serial.println();
+}
+
+void send_test() {
+  
+  if(n_sent < NB_TRIES) {
+    timerData[0] = micros();
+    esp_now_send(remoteDevice, txrxData, dataLength);
+    txrxData[0]++;
+    n_sent++;
+  } else if (Serial) {
+    send_histo();
+    Serial.println();
+    Serial.println("--------------------------");
+    Serial.println();
+    
+    n_sent=0;
+
+    
+    Serial.println();
+    Serial.println("------New test :----------");
+    Serial.println();
+    init_histo();
+    
+  }
 }
 
 void setup()
@@ -95,6 +129,7 @@ void setup()
   pinMode(2, OUTPUT); //TX
   pinMode(0, OUTPUT); //RX
   Serial.begin(115200);
+  while(!Serial) {delay(1);}
   Serial.print("\r\n\r\nDevice MAC: ");
   WiFi.mode(WIFI_STA);
   WiFi.begin();
@@ -110,36 +145,24 @@ void setup()
     timerData[1] = micros();
     timerData[2] = timerData[1]-timerData[0];
 
-    if(data[0] == txrxData[0] -1 ) {
+    if(len>0 && data[0] == txrxData[0] -1 ) {
       fill_histo(timerData[2]);
+      receiveNb++;
+      avg += timerData[2];
     } else {
       error_nb++;
     }
     
     
   });
-
+  
   Serial.println(error);// if ==0 is OK
+
+  n_sent = 0;
+  blinker.attach(0.1, send_test);
 }
 
 void loop()
 {
-  Serial.println();
-  Serial.println("------New test :----------");
-  Serial.println();
-  init_histo();
-  for(long int tries=0;tries<NB_TRIES;tries++) {
-    lastsend = micros();
-    timerData[0] = micros();
-  
-    esp_now_send(remoteDevice, txrxData, dataLength);
-    
-    txrxData[0]++;
-    while(micros() - lastsend < 9999) { yield();}
-  }
-  send_histo();
-  delay(1000);
-  Serial.println();
-  Serial.println("--------------------------");
-  Serial.println();
+  yield();
 }
