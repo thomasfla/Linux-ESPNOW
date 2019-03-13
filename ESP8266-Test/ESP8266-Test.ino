@@ -57,14 +57,18 @@ void setup()
 
   error = esp_now_register_recv_cb([](uint8_t *mac, uint8_t *data, uint8_t len)
   {
-    Serial.println(error);// if ==0 is OK
-    //timerData[1] = micros();
-    // timerData[2] = timerData[1]-timerData[0];
-    //digitalWrite(0, HIGH);
+    //Serial.println(error);// if ==0 is OK
+    timerData[1] = micros();
+    timerData[2] = timerData[1]-timerData[0];
+    digitalWrite(0, HIGH);
     delayMicroseconds(10);
-    Serial.printf("\tReceived [%d]\tTook\t[%d]micros\r\n", data[0], timerData[2]);
+    
+    Serial.printf("Received\t%d\t", data[0]);
+    Serial.printf("Took\t%d\tµs\t", timerData[2]);
+    Serial.printf("Status\t%d\t", error);
+    Serial.println();
     //memcpy(txrxData, data, len );
-    //digitalWrite(0, LOW);
+    digitalWrite(0, LOW);
   });
 
   Serial.println(error);// if ==0 is OK
@@ -72,15 +76,13 @@ void setup()
 
 void loop()
 {
-  while (micros() - timerData[0] < 99999) delayMicroseconds(1);
+  while (micros() - timerData[0] < 90000) delayMicroseconds(1);
   timerData[0] = micros();
 
-  //digitalWrite(2, HIGH);
+  digitalWrite(2, HIGH);
   esp_now_send(remoteDevice, txrxData, dataLength);
-  Serial.printf("\tSent [%d]\r\n", txrxData[0]);
-  Serial.println(error);// if ==0 is OK
-  //digitalWrite(2, LOW);
+  //Serial.printf("\tSent [%d]\r\n", txrxData[0]);
+  //Serial.println(error);// if ==0 is OK
+  digitalWrite(2, LOW);
   txrxData[0]++;
 }
-
-

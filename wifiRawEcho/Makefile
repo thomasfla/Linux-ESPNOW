@@ -1,6 +1,21 @@
-test:
-	mkdir -p bin
-	gcc main.c -Wall -o bin/sender
 
-clean:
-	rm -r bin
+CC = gcc
+CFLAGS  = -g -Wall
+INCLUDES = -I Includes/
+
+default: all
+
+%.o: src/%.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o bin/$@ -c $^
+
+app: main.o ESPNOW_packet.o
+	$(CC) $(CFLAGS) -o bin/exec $(addprefix bin/,$^)
+
+
+all: clear clean app
+
+clean: 
+	$(RM) bin/*
+
+clear:
+	clear
