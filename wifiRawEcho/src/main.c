@@ -15,6 +15,8 @@ Etienne Arlaud
 #include <linux/filter.h>
 #include <sys/time.h>   
 
+#define PRIORITY_LVL -20
+
 #include "ESPNOW_packet.h"
 
 
@@ -112,7 +114,9 @@ int create_raw_socket(char *dev, struct sock_fprog *bpf)
 int main(int argc, char **argv)
 {
 	assert(argc == 2);
-
+	
+	nice(PRIORITY_LVL);
+	
     char *dev = argv[1];
 
 	int packets_received = 0;	
@@ -155,8 +159,8 @@ int main(int argc, char **argv)
         }            
 		else if(len > 77)
         {
-            printf("Receive packet number : %d\n", ++packets_received);
-            print_raw_packet(buff, len);
+            //printf("Receive packet number : %d\n", ++packets_received);
+            //print_raw_packet(buff, len);
 			
 			//generate echo
 			echo_packet.wlan.actionframe.content.payload[0] = buff[77];
@@ -168,7 +172,7 @@ int main(int argc, char **argv)
                 perror("Socket send failed");
                 goto LABEL_CLEAN_EXIT;
             } else {
-              printf("Echo sent\n\n\n");
+              //printf("Echo sent\n\n\n");
             }
         }
 		sleep(0.1);
