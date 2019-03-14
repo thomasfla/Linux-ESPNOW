@@ -22,7 +22,8 @@ Etienne Arlaud
 
 #define MY_MAC 0xf81a67b7eb0b
 static uint8_t src_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
-static uint8_t dest_mac[6] = {0x84, 0xf3, 0xeb, 0x73, 0x55, 0x0d};
+//static uint8_t dest_mac[6] = {0x84, 0xf3, 0xeb, 0x73, 0x55, 0x0d}; //ESP8266
+static uint8_t dest_mac[6] = {0xB4, 0xE6, 0x2D, 0xB5, 0x9F, 0x85};// ESP32
 
 #define MAX_PACKET_LEN 1000
 
@@ -163,7 +164,7 @@ int main(int argc, char **argv)
             //print_raw_packet(buff, len);
 			
 			//generate echo
-			echo_packet.wlan.actionframe.content.payload[0] = buff[77];
+			memcpy(echo_packet.wlan.actionframe.content.payload, buff+77, 16);
 			int mypacket_len = packet_to_bytes(raw_bytes, 400, echo_packet);
             s32_res = write(sock_fd, raw_bytes, mypacket_len);
 
