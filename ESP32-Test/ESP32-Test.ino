@@ -6,11 +6,85 @@ esp_now_peer_info_t peer;
 #define CHANNEL 1
 
 #include <Ticker.h>  //Ticker Library
-
 Ticker blinker;
 
-static byte dest_mac[6] = {0xf8, 0x1a, 0x67, 0xb7, 0xeb, 0x0b}; //computers
+static byte dest_mac[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; //broadcast
+//static byte dest_mac[6] = {0xf8, 0x1a, 0x67, 0xb7, 0xeb, 0x0b}; //computers
 //static byte dest_mac[6] ={0x84, 0xF3, 0xEB, 0x73, 0x55, 0x1E}; //ESP8266 (2) Echo mode
+
+#define DATA_LEN 250
+uint8_t txData[DATA_LEN];
+
+void init_data() {
+  for(int i=0;i<DATA_LEN;i++) {
+    txData[i] = 0x14;
+  }
+}
+
+#define NB_TRIES 10
+
+#define HISTO_INF 0
+#define HISTO_SUP 10000
+#define HISTO_N_STEP 10
+
+int histogram[HISTO_N_STEP];
+int histogram_higher;
+int histogram_lower;
+int error_nb;
+int receiveNb;
+double avg;
+
+long batchStart =0;
+
+bool sendNew = true;
+
+unsigned long n_sent;
+
+void init_histo() {
+  for(int i=0;i<HISTO_N_STEP;i++) {
+    histogram[i] = 0;
+  }
+  histogram_higher = 0;
+  histogram_lower = 0;
+  error_nb=0;
+  receiveNb=0;
+  avg=0;
+}
+
+int fill_histo(long value) {
+  int index = (value-HISTO_INF) * HISTO_N_STEP / (HISTO_SUP - HISTO_INF);
+  if(index >= HISTO_N_STEP) {
+    histogram_higher++;
+  } else if(index < 0) {
+    histogram_lower++;
+  } else {
+    histogram[index]++;
+  }
+
+  receiveNb++;
+  avg += value;
+}
+
+void print_histo() {
+  Serial.printf("Bounds\t%d\tµs\t%d\tµs", HISTO_INF, HISTO_SUP);
+  Serial.println();
+  Serial.printf("Nb out of bounds :");
+  Serial.println();
+  Serial.printf("Higher :\t%d\tLower :\t%d", histogram_higher, histogram_lower);
+  Serial.println();
+  Serial.printf("Histo :");
+  Serial.println();
+  for(int i=0;i<HISTO_N_STEP;i++) {
+    Serial.printf("%d\t", histogram[i]);
+  }
+  Serial.println();
+  Serial.printf("Average :\t%f\t", receiveNb != 0 ? avg/receiveNb : -1);
+  Serial.println();
+  Serial.printf("Received :\t%d", receiveNb);
+  Serial.println();
+  Serial.printf("Errors :\t%d", error_nb);
+  Serial.println();
+}
 
 
 bool pairWithPeer() {
@@ -51,22 +125,27 @@ bool pairWithPeer() {
   }
 }
 
-#define DATA_LEN 250
-uint8_t data[DATA_LEN];
-
-void init_data() {
-  for(int i=0;i<DATA_LEN;i++) {
-    data[i] = 0x14;
-  }
-}
-
 // send data
 void sendData() {
-  data[0]++;
-  Serial.print("Sending: "); Serial.println(data[0]);
-  esp_err_t result = esp_now_send(peer.peer_addr, data, sizeof(data[0])*DATA_LEN);
-  if (result != ESP_OK) {
-    Serial.println("---------------AN ERROR OCCURED WHILE SENDING---------------");
+  if(n_sent < NB_TRIES) {
+    long mytime = micros();
+    memcpy(txData, &mytime, sizeof(mytime));
+    esp_now_send(peer.peer_addr, txData, sizeof(txData[0])*DATA_LEN);
+    n_sent++;
+  } else if (Serial) {
+    print_histo();
+    Serial.println();
+    Serial.println("--------------------------");
+    Serial.println();
+    
+    n_sent=0;
+
+    
+    Serial.println();
+    Serial.println("------New test :----------");
+    Serial.println();
+    init_histo();
+    batchStart = micros();
   }
 }
 
@@ -75,15 +154,22 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   char macStr[18];
   snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
            mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
- Serial.println(status == ESP_NOW_SEND_SUCCESS ? "" : "Delivery Fail");
 }
 
-void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
-  char macStr[18];
-  snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
-         mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-  Serial.print("Reiceved from : ");
-  Serial.println(macStr);
+void OnDataRecv(const uint8_t *mac, const uint8_t *rxData, int len) {
+  long receiveTime = micros();
+    long sendTime;
+    
+    if(len>sizeof(sendTime)) {
+      memcpy(&sendTime, rxData, sizeof(sendTime));
+
+      if(sendTime>batchStart) {
+        fill_histo(receiveTime - sendTime);
+      }
+    } else {
+      error_nb++;
+    }
+    sendNew = true;
 }
 
 void setup() {
@@ -120,6 +206,8 @@ void setup() {
     Serial.println("Slave pair failed!");
     ESP.restart();
   }
+
+  n_sent = 0;
   
   blinker.attach(1, sendData);
 }
