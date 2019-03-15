@@ -11,7 +11,7 @@ void init_ESPNOW_packet(ESPNOW_packet *packet) {
 	packet->radiotap.pad = 0x00;
 	packet->radiotap.present_1 = 0x0000000e;
 	packet->radiotap.flags = 0x10;
-	packet->radiotap.datarate = 0x0c;
+	packet->radiotap.datarate = 0x6c;
 	packet->radiotap.channel_freq = 0x096c;
 	packet->radiotap.channel_flags_quarter = 0x00c0;
 
@@ -33,7 +33,7 @@ void init_ESPNOW_packet(ESPNOW_packet *packet) {
 	
 	//vendor specific
 	packet->wlan.actionframe.content.elementID = 0xdd;
-	packet->wlan.actionframe.content.length = 0xff;
+	packet->wlan.actionframe.content.length = 0x80;//0xff;
 	packet->wlan.actionframe.content.OUI[0] = 0x18;
 	packet->wlan.actionframe.content.OUI[1] = 0xfe;
 	packet->wlan.actionframe.content.OUI[2] = 0x34;
@@ -41,7 +41,7 @@ void init_ESPNOW_packet(ESPNOW_packet *packet) {
 	packet->wlan.actionframe.content.version = 0x01;
 
 	//payload
-	for(int i=0;i<250;i++) {
+	for(int i=0;i<127;i++) {
 			packet->wlan.actionframe.content.payload[i] = 0x13;
 	}
 }
