@@ -13,9 +13,10 @@ Etienne Arlaud
 #include <arpa/inet.h>
 #include <assert.h>
 #include <linux/filter.h>
-#include <sys/time.h>   
+#include <sys/time.h>
 
 #define PRIORITY_LVL -20
+#define SOCKET_PRIORITY 7
 
 #include "ESPNOW_packet.h"
 
@@ -76,11 +77,13 @@ int create_raw_socket(char *dev, struct sock_fprog *bpf)
 {
     struct sockaddr_ll s_dest_addr;
     struct ifreq ifr;
+	int priority;
 	
     int fd, 			//file descriptor
 		ioctl_errno,	//ioctl errno
 		bind_errno,		//bind errno
-		filter_errno;	//attach filter errno
+		filter_errno,	//attach filter errno
+		priority_errno;	//Set priority errno
 	
 	bzero(&s_dest_addr, sizeof(s_dest_addr));
     bzero(&ifr, sizeof(ifr));
@@ -109,6 +112,10 @@ int create_raw_socket(char *dev, struct sock_fprog *bpf)
 	filter_errno = setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER, bpf, sizeof(*bpf));
     assert(filter_errno >= 0);
 	
+	priority = SOCKET_PRIORITY;
+	priority_errno = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority));
+	assert(priority_errno ==0);
+
     return fd;
 }
 
@@ -167,7 +174,7 @@ int main(int argc, char **argv)
 			//generate echo
 			memcpy(echo_packet.wlan.actionframe.content.payload, buff+77, 16);
 			int mypacket_len = packet_to_bytes(raw_bytes, 400, echo_packet);
-            s32_res = write(sock_fd, raw_bytes, mypacket_len);
+            s32_res = sendto(sock_fd, raw_bytes, mypacket_len,0,NULL,0);
 
             if (-1 == s32_res)
             {
@@ -177,7 +184,6 @@ int main(int argc, char **argv)
               //printf("Echo sent\n\n\n");
             }
         }
-		sleep(0.1);
     }
 
 LABEL_CLEAN_EXIT:

@@ -21,11 +21,11 @@ void init_data() {
   }
 }
 
-#define NB_TRIES 10
+#define NB_TRIES 1000
 
 #define HISTO_INF 0
 #define HISTO_SUP 10000
-#define HISTO_N_STEP 10
+#define HISTO_N_STEP 100
 
 int histogram[HISTO_N_STEP];
 int histogram_higher;
@@ -209,7 +209,7 @@ void setup() {
 
   n_sent = 0;
   
-  blinker.attach(1, sendData);
+  blinker.attach(0.01, sendData);
 }
 
 void loop() {
