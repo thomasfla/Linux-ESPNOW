@@ -1,9 +1,10 @@
 #include <esp_now.h>
 #include <WiFi.h>
+#include <esp_wifi_internal.h>
 
 // Global copy of slave
 esp_now_peer_info_t peer;
-#define CHANNEL 1
+#define CHANNEL 11
 
 #include <Ticker.h>  //Ticker Library
 Ticker blinker;
@@ -183,6 +184,48 @@ void setup() {
   // This is the mac address of the Master in Station Mode
   Serial.print("STA MAC: "); Serial.println(WiFi.macAddress());
   
+  if (esp_now_init() == ESP_OK) {
+    Serial.println("ESPNow Init Success");
+  } else {
+    Serial.println("ESPNow Init Failed");
+    ESP.restart();
+  }
+
+  if(esp_wifi_stop() == ESP_OK) {
+    Serial.println("Stop WIFI");
+  } else {
+    Serial.println("----------Error while stop wifi !---------------");
+  }
+  
+  if(esp_wifi_deinit() == ESP_OK) {
+    Serial.println("De init");
+  } else {
+    Serial.println("----------Error while de init !---------------");
+  }
+
+  wifi_init_config_t my_config = WIFI_INIT_CONFIG_DEFAULT();
+  my_config.ampdu_tx_enable = 0;
+  
+  if(esp_wifi_init(&my_config) == ESP_OK) {
+    Serial.println("Disabled AMPDU");
+  } else {
+    Serial.println("----------Error while re init ! (AMPDU)---------------");
+  }
+
+  
+  if(esp_wifi_start() == ESP_OK) {
+    Serial.println("Restarting WiFi");
+  } else {
+    Serial.println("----------Error while re start !---------------");
+  }
+    
+  //Not working because AMPDU
+  if(esp_wifi_internal_set_fix_rate(ESP_IF_WIFI_STA, true, WIFI_PHY_RATE_48M) == ESP_OK) {
+    Serial.println("Fixed rate set up");
+  } else {
+    Serial.println("----------Error setting up fixed rate !---------------");
+  }
+
   if (esp_now_init() == ESP_OK) {
     Serial.println("ESPNow Init Success");
   } else {
