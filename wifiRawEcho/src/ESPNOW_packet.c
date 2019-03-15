@@ -22,7 +22,7 @@ void init_ESPNOW_packet(ESPNOW_packet *packet) {
 	packet->wlan.type = 0xd0;
 	packet->wlan.flags = 0x00;
 	packet->wlan.duration = 0x3a01;
-	packet->wlan.seq = 0x7051;
+	packet->wlan.seq = 0x0280;//0x7051;
 	
 
 	//action frame

@@ -21,6 +21,7 @@ Etienne Arlaud
 
 
 #define MY_MAC 0xf81a67b7eb0b
+static uint8_t broadcast_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 static uint8_t src_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
 //static uint8_t dest_mac[6] = {0x84, 0xf3, 0xeb, 0x73, 0x55, 0x0d}; //ESP8266
 static uint8_t dest_mac[6] = {0xB4, 0xE6, 0x2D, 0xB5, 0x9F, 0x85};// ESP32
@@ -160,8 +161,8 @@ int main(int argc, char **argv)
         }            
 		else if(len > 77)
         {
-            //printf("Receive packet number : %d\n", ++packets_received);
-            //print_raw_packet(buff, len);
+            printf("Receive packet number : %d\n", ++packets_received);
+            print_raw_packet(buff, len);
 			
 			//generate echo
 			memcpy(echo_packet.wlan.actionframe.content.payload, buff+77, 16);
@@ -173,7 +174,7 @@ int main(int argc, char **argv)
                 perror("Socket send failed");
                 goto LABEL_CLEAN_EXIT;
             } else {
-              //printf("Echo sent\n\n\n");
+              printf("Echo sent\n\n\n");
             }
         }
 		sleep(0.1);
