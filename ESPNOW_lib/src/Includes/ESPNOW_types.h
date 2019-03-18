@@ -38,7 +38,7 @@ struct IEEE80211_radiotap {
     uint8_t datarate;
     uint16_t channel_freq;
     uint16_t channel_flags_quarter;
-	
+
 	//Default values for ESPNOW
 	IEEE80211_radiotap() {
 		this->version = 0;
@@ -60,7 +60,7 @@ struct IEEE80211_vendorspecific {
 	uint8_t type;
 	uint8_t version;
 	uint8_t payload[250];
-	
+
 	//Default values for ESPNOW
 	IEEE80211_vendorspecific() {
 		this->elementID = 0xdd;
@@ -78,7 +78,7 @@ struct IEEE80211_actionframe {
     uint8_t OUI[3];
 	uint8_t unknown_bytes[4];
 	struct IEEE80211_vendorspecific content;
-	
+
 	//Default values for ESPNOW
 	IEEE80211_actionframe() {
 		this->category_code = 0x7f;
@@ -94,22 +94,23 @@ struct IEEE80211_wlan {
 	uint8_t type;
     uint8_t flags;
     uint16_t duration;
-    uint8_t da[6]; 
+    uint8_t da[6];
     uint8_t sa[6];
     uint8_t bssid[6];
     uint16_t seq;
 	struct IEEE80211_actionframe actionframe;
     uint32_t fcs;
 
-	//Default values for ESPNOW	
+	//Default values for ESPNOW
 	IEEE80211_wlan() {
 		this->type = 0xd0;
 		this->flags = 0x00;
 		this->duration = 0x0000; //Will be recalculated by the hardware...
 		this->seq = 0x0280;
 		this->fcs = 0x00000000;	//Will be recalculated by the hardware...
-	}	
+	}
 } __attribute__((__packed__));
+
 
 typedef struct {
 	struct IEEE80211_radiotap radiotap;

@@ -92,7 +92,7 @@ void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
 						};
 	
 	this->bpf.filter = (sock_filter*) malloc(sizeof(sock_filter)*this->bpf.len);
-	memcpy(this->bpf.filter, temp_code, this->bpf.len);
+	memcpy(this->bpf.filter, temp_code, sizeof(struct sock_filter) * this->bpf.len);
 }
 
 
@@ -131,7 +131,7 @@ void ESPNOW_handler::start() {
     assert(bind_errno >= 0);	//abort if error
 	
 	if(bpf.len > 0) {
-		filter_errno = setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf));
+		filter_errno = setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER, &(this->bpf), sizeof(bpf));
 		assert(filter_errno >= 0);
 	}
 
@@ -145,27 +145,4 @@ void ESPNOW_handler::start() {
 int ESPNOW_handler::send(ESPNOW_packet p) {
 	int len = p.toBytes(this->raw_bytes, LEN_MAX_RAW_BYTES);
 	return sendto(this->sock_fd, this->raw_bytes, len, 0, NULL, 0);
-}
-
-/*
-void ESPNOW_handler::send_payload(uint8_t *payload, int len, uint8_t dest[6]) {
-	this->set_dest_mac(dest);	
-	this->send_payload(payload, len);
-}
-*/
-
-
-void print_raw_packet(uint8_t *data, int len)
-{
-    printf("----------------------new packet (len : %d)---------------------------\n", len);
-    int i;
-    for (i = 0; i < len; i++)
-    {
-        if (i % 16 == 0)
-            printf("\n");
-		else if(i % 8 == 0)
-			printf(" ");
-        printf("0x%02x, ", data[i]);
-    }
-    printf("\n\n");
 }

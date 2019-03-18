@@ -30,15 +30,15 @@ class ESPNOW_handler {
 			set_interface(interface);
 			set_dest_mac(dest_mac);
 		}
+		
 
 		void set_filter(uint8_t *src_mac, uint8_t *dst_mac);
-		
 		void set_dest_mac(uint8_t dest_mac[6]);
 		void set_interface(char* interface);
-
 		void callback();
 		void start();
 		int send(ESPNOW_packet p);
+
 		//void send_payload(uint8_t *payload, int len);
 		//void send_payload(uint8_t *payload, int len, uint8_t dest[6]);
 		//void send_frame(IEEE80211_actionframe frame, uint8_t dest[6]);
