@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -27,14 +28,16 @@ void ESPNOW_handler::set_interface(char* interface) {
 
 void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
 	//sudo tcpdump -i wlp5s0 'type 0 subtype 0xd0 and wlan[24:4]=0x7f18fe34 and wlan[32]=221 and wlan[33:4]&0xffffff = 0x18fe34 and wlan[37]=0x4 and wlan dst 11:22:33:44:55:66 and wlan src 77:88:99:aa:bb:cc' -dd
-	this->bpf.len = 53;
-	
+	this->bpf.len = 20;
+	//this->bpf.len = 53;
+
 	uint32_t MSB_dst = MAC_2_MSBytes(dst_mac);
 	uint32_t LSB_dst = MAC_4_LSBytes(dst_mac);
 
 	uint32_t MSB_src = MAC_2_MSBytes(dst_mac);
 	uint32_t LSB_src = MAC_4_LSBytes(dst_mac);
 	
+	/*
 	struct sock_filter temp_code[this->bpf.len] = {
 			{ 0x30, 0, 0, 0x00000003 },
 			{ 0x64, 0, 0, 0x00000008 },
@@ -90,7 +93,31 @@ void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
 			{ 0x6, 0, 0, 0x00040000 },
 			{ 0x6, 0, 0, 0x00000000 }
 						};
-	
+	*/
+	struct sock_filter temp_code[this->bpf.len] = {
+		{ 0x30, 0, 0, 0x00000003 },
+		{ 0x64, 0, 0, 0x00000008 },
+		{ 0x7, 0, 0, 0x00000000 },
+		{ 0x30, 0, 0, 0x00000002 },
+		{ 0x4c, 0, 0, 0x00000000 },
+		{ 0x7, 0, 0, 0x00000000 },
+		{ 0x50, 0, 0, 0x00000000 },
+		{ 0x54, 0, 0, 0x000000fc },
+		{ 0x15, 0, 10, 0x000000d0 },
+		{ 0x40, 0, 0, 0x00000018 },
+		{ 0x15, 0, 8, 0x7f18fe34 },
+		{ 0x50, 0, 0, 0x00000020 },
+		{ 0x15, 0, 6, 0x000000dd },
+		{ 0x40, 0, 0, 0x00000021 },
+		{ 0x54, 0, 0, 0x00ffffff },
+		{ 0x15, 0, 3, 0x0018fe34 },
+		{ 0x50, 0, 0, 0x00000025 },
+		{ 0x15, 0, 1, 0x00000004 },
+		{ 0x6, 0, 0, 0x00040000 },
+		{ 0x6, 0, 0, 0x00000000 },
+	};
+
+
 	this->bpf.filter = (sock_filter*) malloc(sizeof(sock_filter)*this->bpf.len);
 	memcpy(this->bpf.filter, temp_code, sizeof(struct sock_filter) * this->bpf.len);
 }
@@ -130,16 +157,67 @@ void ESPNOW_handler::start() {
     bind_errno = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
     assert(bind_errno >= 0);	//abort if error
 	
+	
 	if(bpf.len > 0) {
 		filter_errno = setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER, &(this->bpf), sizeof(bpf));
 		assert(filter_errno >= 0);
 	}
 
+
 	priority_errno = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &(this->socket_priority), sizeof(this->socket_priority));
 	assert(priority_errno ==0);
 	
+	this->sock_fd = fd;
 
-    this->sock_fd = fd;
+	this->thread_params.sock_fd = this->sock_fd;
+
+	pthread_create (&ul_recv_thd_id, NULL, &(ESPNOW_handler::sock_recv_thread), &thread_params);
+    
+}
+
+void*
+ESPNOW_handler::sock_recv_thread (void *p_arg)
+{
+	int MAX_PACKET_LEN = 500;
+	uint8_t buff[MAX_PACKET_LEN];
+
+	struct args_thread params = * ((struct args_thread *)p_arg);
+
+	int len;
+
+    while( params.callback != NULL )
+    {	
+    	printf("%d", params.sock_fd);
+    	fflush(stdout);
+        len = recvfrom (params.sock_fd,
+                            buff,
+                            MAX_PACKET_LEN,
+                            MSG_TRUNC,
+                            NULL,
+                            0);
+
+        if( -1 == len )
+        {
+            perror ("Socket receive failed");
+            break;
+        }
+        else if( len < 0 )
+        {
+            perror ("Socket receive, error ");
+        }
+        else
+        {
+            printf ("Received data. Len : %d", len);
+            
+            params.callback(NULL, buff, len);
+
+            printf ("Received data %s\n\n", &buff[77]);
+        }
+
+    }
+
+    printf ("Receive thread exited \n");
+    return EXIT_SUCCESS;
 }
 
 int ESPNOW_handler::send(ESPNOW_packet p) {

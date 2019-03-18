@@ -6,12 +6,18 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "ESPNOW_types.h"
 
 //#define MAX_BPFCODE_LEN 100
 
 #define LEN_MAX_RAW_BYTES 400
+
+struct args_thread {
+	int sock_fd;
+	void (*callback)(uint8_t src_mac[6], uint8_t *data, int len);
+};
 
 class ESPNOW_handler {
 	public:
@@ -30,7 +36,7 @@ class ESPNOW_handler {
 			set_interface(interface);
 			set_dest_mac(dest_mac);
 		}
-		
+
 
 		void set_filter(uint8_t *src_mac, uint8_t *dst_mac);
 		void set_dest_mac(uint8_t dest_mac[6]);
@@ -60,7 +66,16 @@ class ESPNOW_handler {
 		void default_init() {
 			bpf.len = -1;
 			socket_priority = 7; //Priority
+			thread_params.callback = NULL;
 		}
+
+		pthread_t ul_recv_thd_id;
+
+		struct args_thread thread_params;
+
+		static void* sock_recv_thread (void *p_arg);
 };
+
+
 
 #endif

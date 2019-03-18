@@ -9,7 +9,7 @@ default: all
 	$(CC) $(CFLAGS) $(INCLUDES) -o bin/$@ -c $^
 
 app: main.o ESPNOW_handler.o ESPNOW_types.o
-	$(CC) $(CFLAGS) -o bin/exec $(addprefix bin/,$^)
+	$(CC) $(CFLAGS) -o bin/exec $(addprefix bin/,$^) -pthread
 
 
 all: clear clean app
