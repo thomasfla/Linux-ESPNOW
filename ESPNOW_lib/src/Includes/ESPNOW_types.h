@@ -30,7 +30,7 @@
 #define CHANNEL_freq_13 2472
 
 #define WLAN_LEN 24
-#define ACTIONFRAME_HEADER_LEN 3
+#define ACTIONFRAME_HEADER_LEN 8
 #define VENDORSPECIFIC_CONTENT_LEN 7
 
 struct IEEE80211_radiotap {

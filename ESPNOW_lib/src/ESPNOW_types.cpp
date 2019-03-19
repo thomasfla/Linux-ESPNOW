@@ -35,8 +35,8 @@ int ESPNOW_packet::toBytes(uint8_t *bytes, int max_len) {
 }
 
 int ESPNOW_packet::get_radiotap_len(uint8_t *raw_bytes, int len) {
-	if(len < 4) return NULL;
-	return raw_bytes[3] + (raw_bytes[4] << 8);
+	if(len < 4) return -1;
+	return raw_bytes[2] + (raw_bytes[3] << 8);
 }
 
 uint8_t* ESPNOW_packet::get_mac(uint8_t *raw_bytes, int len) {
@@ -50,7 +50,7 @@ uint8_t* ESPNOW_packet::get_mac(uint8_t *raw_bytes, int len) {
 int ESPNOW_packet::get_payload_len(uint8_t *raw_bytes, int len) {
 	int radiotap_len = get_radiotap_len(raw_bytes, len);
 	
-	if(len < radiotap_len + WLAN_LEN + ACTIONFRAME_HEADER_LEN + 1) return NULL;
+	if(len < radiotap_len + WLAN_LEN + ACTIONFRAME_HEADER_LEN + 1) return -1;
 
 	return raw_bytes[radiotap_len + WLAN_LEN + ACTIONFRAME_HEADER_LEN + 1] - 5;
 }
