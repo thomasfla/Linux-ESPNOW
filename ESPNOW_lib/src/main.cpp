@@ -21,14 +21,13 @@ uint8_t payload[250];
 
 void callback(uint8_t src_mac[6], uint8_t *data, int len) {
 	memcpy(payload, data, 250);
-	//handler->set_dst_mac(src_mac);
+	handler->set_dst_mac(src_mac);
 	handler->send(payload,250);
-	printf("wesh\n");
 }
 
 int main(int argc, char **argv) {
 
-	handler = new ESPNOW_manager("wlp5s0", DATARATE_54Mbps, CHANNEL_freq_11, my_mac, dest_mac, false);
+	handler = new ESPNOW_manager("wlp5s0", DATARATE_54Mbps, CHANNEL_freq_11, my_mac, dest_mac, true);
 
 	//handler->set_filter(NULL, dest_mac);
 
