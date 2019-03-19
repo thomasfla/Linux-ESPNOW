@@ -36,15 +36,16 @@ class ESPNOW_manager {
 			set_datarate(datarate);
 			set_src_mac(src_mac);
 			set_dst_mac(dst_mac);
-			/*
+			
 			if(filterOn) {
 				set_filter(dst_mac, src_mac);
 			} else {
 				set_filter(NULL, NULL);
 			}
-			*/
+			
 		}
 
+		void unset_filter();
 		void set_filter(uint8_t *src_mac, uint8_t *dst_mac);
 		void set_interface(char* interface);
 		void set_recv_callback(void (*callback)(uint8_t src_mac[6], uint8_t *data, int len));
