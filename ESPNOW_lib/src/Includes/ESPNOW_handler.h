@@ -10,11 +10,10 @@
 
 #include "ESPNOW_types.h"
 
-//#define MAX_BPFCODE_LEN 100
 
-#define LEN_MAX_RAW_BYTES 400
+#define LEN_RAWBYTES_MAX 512
 
-struct args_thread {
+struct thread_args {
 	int sock_fd;
 	void (*callback)(uint8_t src_mac[6], uint8_t *data, int len);
 };
@@ -41,10 +40,12 @@ class ESPNOW_handler {
 		void set_filter(uint8_t *src_mac, uint8_t *dst_mac);
 		void set_dest_mac(uint8_t dest_mac[6]);
 		void set_interface(char* interface);
-		void callback();
-		void start();
+		void set_recv_callback(void (*callback)(uint8_t src_mac[6], uint8_t *data, int len));
 		int send(ESPNOW_packet p);
-
+		void start();
+		void stop();
+		void end();
+		
 		//void send_payload(uint8_t *payload, int len);
 		//void send_payload(uint8_t *payload, int len, uint8_t dest[6]);
 		//void send_frame(IEEE80211_actionframe frame, uint8_t dest[6]);
@@ -56,22 +57,19 @@ class ESPNOW_handler {
 				
 		int socket_priority;
 
-		uint8_t raw_bytes[LEN_MAX_RAW_BYTES];
-
 		struct sock_fprog bpf;
-		ESPNOW_packet mypacket;
 		
 		int sock_fd;
 
 		void default_init() {
 			bpf.len = -1;
 			socket_priority = 7; //Priority
-			thread_params.callback = NULL;
+			recv_thread_params.callback = NULL;
 		}
 
-		pthread_t ul_recv_thd_id;
+		pthread_t recv_thd_id;
 
-		struct args_thread thread_params;
+		struct thread_args recv_thread_params;
 
 		static void* sock_recv_thread (void *p_arg);
 };

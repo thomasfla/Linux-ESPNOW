@@ -29,6 +29,10 @@
 #define CHANNEL_freq_12 2467
 #define CHANNEL_freq_13 2472
 
+#define WLAN_LEN 24
+#define ACTIONFRAME_HEADER_LEN 3
+#define VENDORSPECIFIC_CONTENT_LEN 7
+
 struct IEEE80211_radiotap {
 	uint8_t version;
     uint8_t pad;
@@ -120,7 +124,13 @@ typedef struct {
 	void set_datarate(uint8_t datarateMHz);
 	void set_my_mac(uint8_t my_mac[6]);
 	void set_dst_mac(uint8_t dst_mac[6]);
+	
 	int toBytes(uint8_t *bytes, int max_len);
+
+	static int get_radiotap_len(uint8_t *raw_bytes, int len);
+	static uint8_t* get_mac(uint8_t *raw_bytes, int len);
+	static int get_payload_len(uint8_t *raw_bytes, int len);
+	static uint8_t* get_payload(uint8_t *raw_bytes, int len);
 
 } __attribute__((__packed__)) ESPNOW_packet;
 

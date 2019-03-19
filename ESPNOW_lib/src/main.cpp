@@ -15,6 +15,10 @@ static uint8_t my_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
 static uint8_t dest_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 static uint8_t ESP_mac[6] = {0xB4,0xE6,0x2D,0xB5,0x9F,0x85};
 
+void callback(uint8_t src_mac[6], uint8_t *data, int len) {
+	printf("Message received !\n");
+}
+
 int main(int argc, char **argv) {
 	ESPNOW_packet mypacket;
 
@@ -32,11 +36,17 @@ int main(int argc, char **argv) {
 
 	handler.set_filter(ESP_mac, my_mac);
 
+	handler.set_recv_callback(&callback);
+
 	handler.start();
 
-	while(1) {
+	int n = 10;
+
+	while(n--) {
 		handler.send(mypacket);
-		printf("send");
+		printf("send\n");
 		sleep(1);
 	}
+
+	handler.end();
 }

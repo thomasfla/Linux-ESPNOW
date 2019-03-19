@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -13,6 +14,8 @@
 #include <assert.h>
 
 #include "ESPNOW_handler.h"
+
+#include "ESPNOW_types.h"
 
 #define MAC_2_MSBytes(MAC)  (MAC[0] << 8) && MAC[1]
 #define MAC_4_LSBytes(MAC)  (((((MAC[2] << 8) && MAC[3]) << 8) && MAC[4]) << 8) && MAC[5]
@@ -24,6 +27,10 @@ void ESPNOW_handler::set_dest_mac(uint8_t dest_mac[8]) {
 void ESPNOW_handler::set_interface(char* interface) {
 	this->interface = (char*) malloc(strlen(interface)*sizeof(char));	
 	strcpy(this->interface, interface);
+}
+
+void ESPNOW_handler::set_recv_callback(void (*callback)(uint8_t src_mac[6], uint8_t *data, int len)) {
+	recv_thread_params.callback = callback;
 }
 
 void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
@@ -169,51 +176,75 @@ void ESPNOW_handler::start() {
 	
 	this->sock_fd = fd;
 
-	this->thread_params.sock_fd = this->sock_fd;
+	this->recv_thread_params.sock_fd = this->sock_fd;
 
-	pthread_create (&ul_recv_thd_id, NULL, &(ESPNOW_handler::sock_recv_thread), &thread_params);
+	pthread_create (&recv_thd_id, NULL, &(ESPNOW_handler::sock_recv_thread), &recv_thread_params);
     
 }
 
-void*
-ESPNOW_handler::sock_recv_thread (void *p_arg)
+void ESPNOW_handler::stop() {
+	if(recv_thd_id) {
+		pthread_cancel(recv_thd_id);
+	}
+	if (this->sock_fd > 0)
+    {
+        close(this->sock_fd);
+    }
+}
+
+void ESPNOW_handler::end() {
+	stop();
+
+	if(this->interface != NULL) {
+		free(this->interface);
+		this->interface = NULL;
+	}
+	
+	if(this->bpf.filter != NULL) {
+		free(this->bpf.filter);
+		this->bpf.filter = NULL;
+	}
+}
+
+void* ESPNOW_handler::sock_recv_thread (void *p_arg)
 {
-	int MAX_PACKET_LEN = 500;
-	uint8_t buff[MAX_PACKET_LEN];
+	int raw_bytes_len;
+	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
 
-	struct args_thread params = * ((struct args_thread *)p_arg);
+	uint8_t* res_mac;
+	uint8_t* res_payload;
+	int res_len;
 
-	int len;
+	struct thread_args params = * ((struct thread_args *)p_arg);
 
-    while( params.callback != NULL )
+	if(params.callback == NULL) {
+		printf ("No callback for receive, receive thread exited\n");
+    	return EXIT_SUCCESS;
+	};
+
+	while(1)
     {	
-    	printf("%d", params.sock_fd);
-    	fflush(stdout);
-        len = recvfrom (params.sock_fd,
-                            buff,
-                            MAX_PACKET_LEN,
-                            MSG_TRUNC,
-                            NULL,
-                            0);
+        raw_bytes_len = recvfrom (params.sock_fd, raw_bytes, LEN_RAWBYTES_MAX, MSG_TRUNC, NULL, 0);
 
-        if( -1 == len )
+        if( -1 == raw_bytes_len )
         {
             perror ("Socket receive failed");
             break;
         }
-        else if( len < 0 )
+        else if( raw_bytes_len < 0 )
         {
             perror ("Socket receive, error ");
         }
         else
         {
-            printf ("Received data. Len : %d", len);
-            
-            params.callback(NULL, buff, len);
-
-            printf ("Received data %s\n\n", &buff[77]);
+        	res_mac = ESPNOW_packet::get_mac(raw_bytes,raw_bytes_len);
+        	res_payload = ESPNOW_packet::get_payload(raw_bytes, raw_bytes_len);
+        	res_len = ESPNOW_packet::get_payload_len(raw_bytes, raw_bytes_len);
+        	printf("Truc %p, %p, %d\n", res_mac, res_payload, res_len);
+        	if(res_mac != NULL && res_payload != NULL && res_len > 0) {
+        		params.callback(res_mac, res_payload, res_len);
+        	}
         }
-
     }
 
     printf ("Receive thread exited \n");
@@ -221,6 +252,8 @@ ESPNOW_handler::sock_recv_thread (void *p_arg)
 }
 
 int ESPNOW_handler::send(ESPNOW_packet p) {
-	int len = p.toBytes(this->raw_bytes, LEN_MAX_RAW_BYTES);
-	return sendto(this->sock_fd, this->raw_bytes, len, 0, NULL, 0);
+	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
+	int len = p.toBytes(raw_bytes, LEN_RAWBYTES_MAX);
+
+	return sendto(this->sock_fd, raw_bytes, len, 0, NULL, 0);
 }
