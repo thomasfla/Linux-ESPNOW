@@ -17,24 +17,23 @@ static uint8_t ESP_mac[6] = {0xB4,0xE6,0x2D,0xB5,0x9F,0x85};
 
 ESPNOW_manager *handler;
 
-ESPNOW_packet mypacket;
+uint8_t payload[250];
 
 void callback(uint8_t src_mac[6], uint8_t *data, int len) {
-	memcpy(mypacket.wlan.actionframe.content.payload, data, 4);
-	mypacket.set_dst_mac(src_mac);
-	//handler->send(mypacket);
+	memcpy(payload, data, 250);
+	//handler->set_dst_mac(src_mac);
+	handler->send(payload,250);
+	printf("wesh\n");
 }
 
 int main(int argc, char **argv) {
 
-	handler = new ESPNOW_manager("wlp5s0", DATARATE_54Mbps, CHANNEL_freq_11, my_mac, dest_mac, true);
+	handler = new ESPNOW_manager("wlp5s0", DATARATE_54Mbps, CHANNEL_freq_11, my_mac, dest_mac, false);
 
-	/*
-	handler->set_filter(NULL, dest_mac);
+	//handler->set_filter(NULL, dest_mac);
 
 	handler->set_recv_callback(&callback);
-	*/
-	
+
 	handler->start();
 
 	while(1) {

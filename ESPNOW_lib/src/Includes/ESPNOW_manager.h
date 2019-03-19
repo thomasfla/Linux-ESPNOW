@@ -36,11 +36,13 @@ class ESPNOW_manager {
 			set_datarate(datarate);
 			set_src_mac(src_mac);
 			set_dst_mac(dst_mac);
+			/*
 			if(filterOn) {
 				set_filter(dst_mac, src_mac);
 			} else {
 				set_filter(NULL, NULL);
 			}
+			*/
 		}
 
 		void set_filter(uint8_t *src_mac, uint8_t *dst_mac);
@@ -72,7 +74,7 @@ class ESPNOW_manager {
 		static void* sock_recv_thread (void *p_arg);
 
 		void default_values() {
-			bpf.len = -1;
+			bpf.len = 0;
 			socket_priority = 7; //Priority
 			recv_thread_params.callback = NULL;
 		}
