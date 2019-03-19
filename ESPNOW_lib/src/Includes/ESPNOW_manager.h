@@ -29,16 +29,7 @@ class ESPNOW_manager {
 			set_interface(interface);
 		}
 
-
-		ESPNOW_manager(char* interface, uint8_t dest_mac[6]) {
-			default_init();
-			set_interface(interface);
-			set_dest_mac(dest_mac);
-		}
-
-
 		void set_filter(uint8_t *src_mac, uint8_t *dst_mac);
-		void set_dest_mac(uint8_t dest_mac[6]);
 		void set_interface(char* interface);
 		void set_recv_callback(void (*callback)(uint8_t src_mac[6], uint8_t *data, int len));
 		int send(ESPNOW_packet p);
@@ -53,7 +44,6 @@ class ESPNOW_manager {
 	
 	private:
 		char* interface;
-		uint8_t dest_mac[6];
 				
 		int socket_priority;
 

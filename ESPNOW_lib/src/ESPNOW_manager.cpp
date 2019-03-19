@@ -20,10 +20,6 @@
 #define MAC_2_MSBytes(MAC)  MAC == NULL ? 0 : (MAC[0] << 8) | MAC[1]
 #define MAC_4_LSBytes(MAC)  MAC == NULL ? 0 : (((((MAC[2] << 8) | MAC[3]) << 8) | MAC[4]) << 8) | MAC[5]
 
-void ESPNOW_manager::set_dest_mac(uint8_t dest_mac[8]) {
-	memcpy(this->dest_mac, dest_mac, sizeof(uint8_t)*6);
-}
-
 void ESPNOW_manager::set_interface(char* interface) {
 	this->interface = (char*) malloc(strlen(interface)*sizeof(char));	
 	strcpy(this->interface, interface);
@@ -122,7 +118,7 @@ void ESPNOW_manager::start() {
 	
 	
     fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    assert(fd != -1); 			//abort if error
+    assert(fd != -1);
 
     strncpy((char *)ifr.ifr_name, this->interface, IFNAMSIZ); //interface
 
@@ -130,14 +126,9 @@ void ESPNOW_manager::start() {
     assert(ioctl_errno >= 0);	//abort if error
 
     s_dest_addr.sll_family = PF_PACKET;
-    //we don't use a protocol above ethernet layer, just use anything here
     s_dest_addr.sll_protocol = htons(ETH_P_ALL);
     s_dest_addr.sll_ifindex = ifr.ifr_ifindex;
-    s_dest_addr.sll_hatype = ARPHRD_ETHER;
-    s_dest_addr.sll_pkttype = PACKET_OTHERHOST; //PACKET_OUTGOING
-    s_dest_addr.sll_halen = ETH_ALEN;
-	memcpy(&(s_dest_addr.sll_addr), this->dest_mac, sizeof(this->dest_mac)*6); //MAC
-
+    
     bind_errno = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
     assert(bind_errno >= 0);	//abort if error
 	

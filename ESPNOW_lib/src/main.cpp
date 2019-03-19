@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 	mypacket.set_dst_mac(dest_mac);
 	mypacket.set_src_mac(my_mac);
 	
-	handler = new ESPNOW_manager("wlp5s0", dest_mac);
+	handler = new ESPNOW_manager("wlp5s0");
 
 	handler->set_filter(NULL, dest_mac);
 
