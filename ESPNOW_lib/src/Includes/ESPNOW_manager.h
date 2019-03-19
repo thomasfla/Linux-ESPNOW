@@ -21,47 +21,62 @@ struct thread_args {
 class ESPNOW_manager {
 	public:
 		ESPNOW_manager() {
-			default_init();
+			default_values();
 		}
 
 		ESPNOW_manager(char* interface) {
-			default_init();
+			default_values();
 			set_interface(interface);
+		}
+
+		ESPNOW_manager(char* interface, uint8_t datarate, uint16_t channel_freq, uint8_t src_mac[6], uint8_t dst_mac[6], bool filterOn) {
+			default_values();
+			set_interface(interface);
+			set_channel(channel_freq);
+			set_datarate(datarate);
+			set_src_mac(src_mac);
+			set_dst_mac(dst_mac);
+			if(filterOn) {
+				set_filter(dst_mac, src_mac);
+			} else {
+				set_filter(NULL, NULL);
+			}
 		}
 
 		void set_filter(uint8_t *src_mac, uint8_t *dst_mac);
 		void set_interface(char* interface);
 		void set_recv_callback(void (*callback)(uint8_t src_mac[6], uint8_t *data, int len));
-		int send(ESPNOW_packet p);
+		
 		void start();
 		void stop();
 		void end();
 		
-		//void send_payload(uint8_t *payload, int len);
-		//void send_payload(uint8_t *payload, int len, uint8_t dest[6]);
-		//void send_frame(IEEE80211_actionframe frame, uint8_t dest[6]);
-		//void send_raw(uint8_t *buff, int len, uint8_t dest[6]);
+		//int send(ESPNOW_packet p);
+		int send(uint8_t *payload, int len);
+		
+		void set_channel(uint16_t channel_freq) { mypacket.set_channel(channel_freq); }
+		void set_datarate(uint8_t datarate) { mypacket.set_datarate(datarate); }
+		void set_src_mac(uint8_t src_mac[6]) { mypacket.set_src_mac(src_mac); }
+		void set_dst_mac(uint8_t dst_mac[6]) { mypacket.set_dst_mac(dst_mac); }
 	
 	private:
-		char* interface;
-				
-		int socket_priority;
-
-		struct sock_fprog bpf;
-		
 		int sock_fd;
+		struct sock_fprog bpf;
+		int socket_priority;
+		char* interface;
 
-		void default_init() {
+		ESPNOW_packet mypacket;
+
+		pthread_t recv_thd_id;
+		struct thread_args recv_thread_params;
+		static void* sock_recv_thread (void *p_arg);
+
+		void default_values() {
 			bpf.len = -1;
 			socket_priority = 7; //Priority
 			recv_thread_params.callback = NULL;
 		}
 
-		pthread_t recv_thd_id;
-
-		struct thread_args recv_thread_params;
-
-		static void* sock_recv_thread (void *p_arg);
 };
 
 

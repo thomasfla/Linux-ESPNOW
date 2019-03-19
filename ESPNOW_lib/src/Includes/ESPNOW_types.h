@@ -74,6 +74,8 @@ struct IEEE80211_vendorspecific {
 		this->type = 0x04;
 		this->version = 0x01;
 	}
+
+	void set_length(int length) {this->length = length + 5;}
 } __attribute__((__packed__));
 
 
@@ -121,7 +123,7 @@ typedef struct {
 	struct IEEE80211_wlan wlan;
 
 	void set_channel(uint16_t channel_freq);
-	void set_datarate(uint8_t datarateMHz);
+	void set_datarate(uint8_t datarate);
 	void set_src_mac(uint8_t my_mac[6]);
 	void set_dst_mac(uint8_t dst_mac[6]);
 	

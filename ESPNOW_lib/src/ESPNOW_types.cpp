@@ -9,8 +9,8 @@ void ESPNOW_packet::set_channel(uint16_t channel_freq) {
 this->radiotap.channel_freq = channel_freq;
 }
 
-void ESPNOW_packet::set_datarate(uint8_t datarateMHz) {
-	this->radiotap.datarate = datarateMHz;
+void ESPNOW_packet::set_datarate(uint8_t datarate) {
+	this->radiotap.datarate = datarate;
 }
 
 void ESPNOW_packet::set_src_mac(uint8_t my_mac[6]) {

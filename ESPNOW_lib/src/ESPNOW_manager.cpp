@@ -112,36 +112,34 @@ void ESPNOW_manager::start() {
 		bind_errno,		//bind errno
 		filter_errno,	//attach filter errno
 		priority_errno;	//Set priority errno
-	
-	bzero(&s_dest_addr, sizeof(s_dest_addr));
+
     bzero(&ifr, sizeof(ifr));
-	
-	
+	strncpy((char *)ifr.ifr_name, this->interface, IFNAMSIZ); //interface
+
+	bzero(&s_dest_addr, sizeof(s_dest_addr));
+	s_dest_addr.sll_family = PF_PACKET;
+    s_dest_addr.sll_protocol = htons(ETH_P_ALL);
+    s_dest_addr.sll_ifindex = ifr.ifr_ifindex;
+
+
     fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
     assert(fd != -1);
 
-    strncpy((char *)ifr.ifr_name, this->interface, IFNAMSIZ); //interface
-
     ioctl_errno = ioctl(fd, SIOCGIFINDEX, &ifr);
-    assert(ioctl_errno >= 0);	//abort if error
+    assert(ioctl_errno >= 0);
 
-    s_dest_addr.sll_family = PF_PACKET;
-    s_dest_addr.sll_protocol = htons(ETH_P_ALL);
-    s_dest_addr.sll_ifindex = ifr.ifr_ifindex;
-    
     bind_errno = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
-    assert(bind_errno >= 0);	//abort if error
-	
+    assert(bind_errno >= 0);
 	
 	if(bpf.len > 0) {
 		filter_errno = setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER, &(this->bpf), sizeof(bpf));
 		assert(filter_errno >= 0);
 	}
 
-
 	priority_errno = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &(this->socket_priority), sizeof(this->socket_priority));
 	assert(priority_errno ==0);
 	
+
 	this->sock_fd = fd;
 
 	this->recv_thread_params.sock_fd = this->sock_fd;
@@ -218,9 +216,26 @@ void* ESPNOW_manager::sock_recv_thread (void *p_arg)
     return EXIT_SUCCESS;
 }
 
+
+/*
 int ESPNOW_manager::send(ESPNOW_packet p) {
 	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
 	int len = p.toBytes(raw_bytes, LEN_RAWBYTES_MAX);
 
 	return sendto(this->sock_fd, raw_bytes, len, 0, NULL, 0);
+}
+*/
+
+
+int ESPNOW_manager::send(uint8_t *payload, int len) {
+	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
+
+	//Not the most fastest way to do this : 
+	//	copy the payload in the packet array and then copy it back into the buffer...
+	this->mypacket.wlan.actionframe.content.set_length(len); 
+	memcpy(this->mypacket.wlan.actionframe.content.payload, payload, len);
+
+	int raw_len = mypacket.toBytes(raw_bytes, LEN_RAWBYTES_MAX);
+
+	return sendto(this->sock_fd, raw_bytes, raw_len, 0, NULL, 0);
 }
