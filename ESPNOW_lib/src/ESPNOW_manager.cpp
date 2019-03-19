@@ -113,33 +113,35 @@ void ESPNOW_manager::start() {
 		filter_errno,	//attach filter errno
 		priority_errno;	//Set priority errno
 
-    bzero(&ifr, sizeof(ifr));
-	strncpy((char *)ifr.ifr_name, this->interface, IFNAMSIZ); //interface
-
 	bzero(&s_dest_addr, sizeof(s_dest_addr));
-	s_dest_addr.sll_family = PF_PACKET;
-    s_dest_addr.sll_protocol = htons(ETH_P_ALL);
-    s_dest_addr.sll_ifindex = ifr.ifr_ifindex;
-
-
+    bzero(&ifr, sizeof(ifr));
+	
+	
     fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
     assert(fd != -1);
 
-    ioctl_errno = ioctl(fd, SIOCGIFINDEX, &ifr);
-    assert(ioctl_errno >= 0);
+    strncpy((char *)ifr.ifr_name, this->interface, IFNAMSIZ); //interface
 
+    ioctl_errno = ioctl(fd, SIOCGIFINDEX, &ifr);
+    assert(ioctl_errno >= 0);	//abort if error
+
+    s_dest_addr.sll_family = PF_PACKET;
+    s_dest_addr.sll_protocol = htons(ETH_P_ALL);
+    s_dest_addr.sll_ifindex = ifr.ifr_ifindex;
+    
     bind_errno = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
-    assert(bind_errno >= 0);
+    assert(bind_errno >= 0);	//abort if error
+	
 	
 	if(bpf.len > 0) {
 		filter_errno = setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER, &(this->bpf), sizeof(bpf));
 		assert(filter_errno >= 0);
 	}
 
+
 	priority_errno = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &(this->socket_priority), sizeof(this->socket_priority));
 	assert(priority_errno ==0);
 	
-
 	this->sock_fd = fd;
 
 	this->recv_thread_params.sock_fd = this->sock_fd;
