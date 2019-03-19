@@ -17,8 +17,8 @@
 
 #include "ESPNOW_types.h"
 
-#define MAC_2_MSBytes(MAC)  (MAC[0] << 8) && MAC[1]
-#define MAC_4_LSBytes(MAC)  (((((MAC[2] << 8) && MAC[3]) << 8) && MAC[4]) << 8) && MAC[5]
+#define MAC_2_MSBytes(MAC)  (MAC[0] << 8) | MAC[1]
+#define MAC_4_LSBytes(MAC)  (((((MAC[2] << 8) | MAC[3]) << 8) | MAC[4]) << 8) | MAC[5]
 
 void ESPNOW_handler::set_dest_mac(uint8_t dest_mac[8]) {
 	memcpy(this->dest_mac, dest_mac, sizeof(uint8_t)*6);
@@ -35,16 +35,17 @@ void ESPNOW_handler::set_recv_callback(void (*callback)(uint8_t src_mac[6], uint
 
 void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
 	//sudo tcpdump -i wlp5s0 'type 0 subtype 0xd0 and wlan[24:4]=0x7f18fe34 and wlan[32]=221 and wlan[33:4]&0xffffff = 0x18fe34 and wlan[37]=0x4 and wlan dst 11:22:33:44:55:66 and wlan src 77:88:99:aa:bb:cc' -dd
-	this->bpf.len = 20;
-	//this->bpf.len = 53;
+	//this->bpf.len = 20;
+	this->bpf.len = 53;
 
 	uint32_t MSB_dst = MAC_2_MSBytes(dst_mac);
 	uint32_t LSB_dst = MAC_4_LSBytes(dst_mac);
 
-	uint32_t MSB_src = MAC_2_MSBytes(dst_mac);
-	uint32_t LSB_src = MAC_4_LSBytes(dst_mac);
+	uint32_t MSB_src = MAC_2_MSBytes(src_mac);
+	uint32_t LSB_src = MAC_4_LSBytes(src_mac);
 	
-	/*
+	printf("%d, %d, %d, %d\n", MSB_dst, LSB_dst, MSB_src, LSB_src);
+
 	struct sock_filter temp_code[this->bpf.len] = {
 			{ 0x30, 0, 0, 0x00000003 },
 			{ 0x64, 0, 0, 0x00000008 },
@@ -100,30 +101,6 @@ void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
 			{ 0x6, 0, 0, 0x00040000 },
 			{ 0x6, 0, 0, 0x00000000 }
 						};
-	*/
-	struct sock_filter temp_code[this->bpf.len] = {
-		{ 0x30, 0, 0, 0x00000003 },
-		{ 0x64, 0, 0, 0x00000008 },
-		{ 0x7, 0, 0, 0x00000000 },
-		{ 0x30, 0, 0, 0x00000002 },
-		{ 0x4c, 0, 0, 0x00000000 },
-		{ 0x7, 0, 0, 0x00000000 },
-		{ 0x50, 0, 0, 0x00000000 },
-		{ 0x54, 0, 0, 0x000000fc },
-		{ 0x15, 0, 10, 0x000000d0 },
-		{ 0x40, 0, 0, 0x00000018 },
-		{ 0x15, 0, 8, 0x7f18fe34 },
-		{ 0x50, 0, 0, 0x00000020 },
-		{ 0x15, 0, 6, 0x000000dd },
-		{ 0x40, 0, 0, 0x00000021 },
-		{ 0x54, 0, 0, 0x00ffffff },
-		{ 0x15, 0, 3, 0x0018fe34 },
-		{ 0x50, 0, 0, 0x00000025 },
-		{ 0x15, 0, 1, 0x00000004 },
-		{ 0x6, 0, 0, 0x00040000 },
-		{ 0x6, 0, 0, 0x00000000 },
-	};
-
 
 	this->bpf.filter = (sock_filter*) malloc(sizeof(sock_filter)*this->bpf.len);
 	memcpy(this->bpf.filter, temp_code, sizeof(struct sock_filter) * this->bpf.len);
