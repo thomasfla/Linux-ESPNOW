@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 	
 	ESPNOW_handler handler("wlp5s0", dest_mac);
 
-	handler.set_filter(ESP_mac, dest_mac);
+	handler.set_filter(NULL, NULL);//(ESP_mac, dest_mac);
 
 	handler.set_recv_callback(&callback);
 

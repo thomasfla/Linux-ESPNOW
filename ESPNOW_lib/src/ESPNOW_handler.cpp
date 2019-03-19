@@ -17,8 +17,8 @@
 
 #include "ESPNOW_types.h"
 
-#define MAC_2_MSBytes(MAC)  (MAC[0] << 8) | MAC[1]
-#define MAC_4_LSBytes(MAC)  (((((MAC[2] << 8) | MAC[3]) << 8) | MAC[4]) << 8) | MAC[5]
+#define MAC_2_MSBytes(MAC)  MAC == NULL ? 0 : (MAC[0] << 8) | MAC[1]
+#define MAC_4_LSBytes(MAC)  MAC == NULL ? 0 : (((((MAC[2] << 8) | MAC[3]) << 8) | MAC[4]) << 8) | MAC[5]
 
 void ESPNOW_handler::set_dest_mac(uint8_t dest_mac[8]) {
 	memcpy(this->dest_mac, dest_mac, sizeof(uint8_t)*6);
@@ -43,8 +43,9 @@ void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
 
 	uint32_t MSB_src = MAC_2_MSBytes(src_mac);
 	uint32_t LSB_src = MAC_4_LSBytes(src_mac);
-	
-	printf("%d, %d, %d, %d\n", MSB_dst, LSB_dst, MSB_src, LSB_src);
+
+	uint8_t jeq_dst = dst_mac == NULL ? 0x30 : 0x15; //0x30 jump if >=. 0x15 jump if ==.
+	uint8_t jeq_src = src_mac == NULL ? 0x30 : 0x15;
 
 	struct sock_filter temp_code[this->bpf.len] = {
 			{ 0x30, 0, 0, 0x00000003 },
@@ -72,32 +73,32 @@ void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
 			{ 0x50, 0, 0, 0x00000001 },
 			{ 0x45, 0, 4, 0x00000001 },
 			{ 0x40, 0, 0, 0x00000012 },
-			{ 0x15, 0, 26, LSB_dst },
+			{ jeq_dst, 0, 26, LSB_dst },
 			{ 0x48, 0, 0, 0x00000010 },
-			{ 0x15, 4, 24, MSB_dst },
+			{ jeq_dst, 4, 24, MSB_dst },
 			{ 0x40, 0, 0, 0x00000006 },
-			{ 0x15, 0, 22, LSB_dst },
+			{ jeq_dst, 0, 22, LSB_dst },
 			{ 0x48, 0, 0, 0x00000004 },
-			{ 0x15, 0, 20, MSB_dst },
+			{ jeq_dst, 0, 20, MSB_dst },
 			{ 0x50, 0, 0, 0x00000001 },
 			{ 0x45, 0, 13, 0x00000002 },
 			{ 0x45, 0, 4, 0x00000001 },
 			{ 0x40, 0, 0, 0x0000001a },
-			{ 0x15, 0, 15, LSB_src },
+			{ jeq_src, 0, 15, LSB_src },
 			{ 0x48, 0, 0, 0x00000018 },
-			{ 0x15, 12, 13, MSB_src },
+			{ jeq_src, 12, 13, MSB_src },
 			{ 0x40, 0, 0, 0x00000012 },
-			{ 0x15, 0, 11, LSB_src },
+			{ jeq_src, 0, 11, LSB_src },
 			{ 0x48, 0, 0, 0x00000010 },
-			{ 0x15, 8, 9, MSB_src },
+			{ jeq_src, 8, 9, MSB_src },
 			{ 0x40, 0, 0, 0x00000006 },
-			{ 0x15, 0, 7, LSB_dst },
+			{ jeq_dst, 0, 7, LSB_dst },
 			{ 0x48, 0, 0, 0x00000004 },
-			{ 0x15, 0, 5, MSB_dst },
+			{ jeq_dst, 0, 5, MSB_dst },
 			{ 0x40, 0, 0, 0x0000000c },
-			{ 0x15, 0, 3, LSB_src },
+			{ jeq_src, 0, 3, LSB_src },
 			{ 0x48, 0, 0, 0x0000000a },
-			{ 0x15, 0, 1, MSB_src },
+			{ jeq_src, 0, 1, MSB_src },
 			{ 0x6, 0, 0, 0x00040000 },
 			{ 0x6, 0, 0, 0x00000000 }
 						};
