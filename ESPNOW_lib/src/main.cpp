@@ -8,14 +8,14 @@ Etienne Arlaud
 #include <unistd.h>
 #include <sys/time.h>
 
-#include "ESPNOW_handler.h"
+#include "ESPNOW_manager.h"
 #include "ESPNOW_types.h"
 						
 static uint8_t my_mac[6] = {0xF8, 0x1A, 0x67, 0xb7, 0xEB, 0x0B};
 static uint8_t dest_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 static uint8_t ESP_mac[6] = {0xB4,0xE6,0x2D,0xB5,0x9F,0x85};
 
-ESPNOW_handler *handler;
+ESPNOW_manager *handler;
 
 ESPNOW_packet mypacket;
 
@@ -36,9 +36,9 @@ int main(int argc, char **argv) {
 	mypacket.set_channel(CHANNEL_freq_11);
 	mypacket.set_datarate(DATARATE_54Mbps);
 	mypacket.set_dst_mac(dest_mac);
-	mypacket.set_my_mac(my_mac);
+	mypacket.set_src_mac(my_mac);
 	
-	handler = new ESPNOW_handler("wlp5s0", dest_mac);
+	handler = new ESPNOW_manager("wlp5s0", dest_mac);
 
 	handler->set_filter(NULL, dest_mac);
 

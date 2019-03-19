@@ -1,5 +1,5 @@
-#ifndef ESPNOW_HANDLER_H
-#define ESPNOW_HANDLER_H
+#ifndef ESPNOW_manager_H
+#define ESPNOW_manager_H
 
 #include <stdint.h>
 #include <linux/filter.h>
@@ -18,19 +18,19 @@ struct thread_args {
 	void (*callback)(uint8_t src_mac[6], uint8_t *data, int len);
 };
 
-class ESPNOW_handler {
+class ESPNOW_manager {
 	public:
-		ESPNOW_handler() {
+		ESPNOW_manager() {
 			default_init();
 		}
 
-		ESPNOW_handler(char* interface) {
+		ESPNOW_manager(char* interface) {
 			default_init();
 			set_interface(interface);
 		}
 
 
-		ESPNOW_handler(char* interface, uint8_t dest_mac[6]) {
+		ESPNOW_manager(char* interface, uint8_t dest_mac[6]) {
 			default_init();
 			set_interface(interface);
 			set_dest_mac(dest_mac);

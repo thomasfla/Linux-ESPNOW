@@ -122,7 +122,7 @@ typedef struct {
 
 	void set_channel(uint16_t channel_freq);
 	void set_datarate(uint8_t datarateMHz);
-	void set_my_mac(uint8_t my_mac[6]);
+	void set_src_mac(uint8_t my_mac[6]);
 	void set_dst_mac(uint8_t dst_mac[6]);
 	
 	int toBytes(uint8_t *bytes, int max_len);
