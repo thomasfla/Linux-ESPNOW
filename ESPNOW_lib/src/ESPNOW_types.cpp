@@ -39,12 +39,12 @@ int ESPNOW_packet::get_radiotap_len(uint8_t *raw_bytes, int len) {
 	return raw_bytes[2] + (raw_bytes[3] << 8);
 }
 
-uint8_t* ESPNOW_packet::get_mac(uint8_t *raw_bytes, int len) {
+uint8_t* ESPNOW_packet::get_src_mac(uint8_t *raw_bytes, int len) {
 	int radiotap_len = get_radiotap_len(raw_bytes, len);
 
-	if(len < radiotap_len + 4 + 6) return NULL;
+	if(len < radiotap_len + 10 + 6) return NULL;
 
-	return raw_bytes + radiotap_len + 4;
+	return raw_bytes + radiotap_len + 10;
 }
 
 int ESPNOW_packet::get_payload_len(uint8_t *raw_bytes, int len) {

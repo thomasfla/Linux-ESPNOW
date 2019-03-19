@@ -21,6 +21,7 @@ ESPNOW_packet mypacket;
 
 void callback(uint8_t src_mac[6], uint8_t *data, int len) {
 	memcpy(mypacket.wlan.actionframe.content.payload, data, 4);
+	mypacket.set_dst_mac(src_mac);
 	handler->send(mypacket);
 }
 
@@ -35,10 +36,11 @@ int main(int argc, char **argv) {
 	mypacket.set_channel(CHANNEL_freq_11);
 	mypacket.set_datarate(DATARATE_54Mbps);
 	mypacket.set_dst_mac(dest_mac);
+	mypacket.set_my_mac(my_mac);
 	
 	handler = new ESPNOW_handler("wlp5s0", dest_mac);
 
-	handler->set_filter(ESP_mac, dest_mac);
+	handler->set_filter(NULL, dest_mac);
 
 	handler->set_recv_callback(&callback);
 

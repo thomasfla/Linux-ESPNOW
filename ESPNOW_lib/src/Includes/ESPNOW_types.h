@@ -128,7 +128,7 @@ typedef struct {
 	int toBytes(uint8_t *bytes, int max_len);
 
 	static int get_radiotap_len(uint8_t *raw_bytes, int len);
-	static uint8_t* get_mac(uint8_t *raw_bytes, int len);
+	static uint8_t* get_src_mac(uint8_t *raw_bytes, int len);
 	static int get_payload_len(uint8_t *raw_bytes, int len);
 	static uint8_t* get_payload(uint8_t *raw_bytes, int len);
 

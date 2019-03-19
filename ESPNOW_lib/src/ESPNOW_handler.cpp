@@ -214,7 +214,7 @@ void* ESPNOW_handler::sock_recv_thread (void *p_arg)
         }
         else
         {
-        	res_mac = ESPNOW_packet::get_mac(raw_bytes,raw_bytes_len);
+        	res_mac = ESPNOW_packet::get_src_mac(raw_bytes,raw_bytes_len);
         	res_payload = ESPNOW_packet::get_payload(raw_bytes, raw_bytes_len);
         	res_len = ESPNOW_packet::get_payload_len(raw_bytes, raw_bytes_len);
         	if(res_mac != NULL && res_payload != NULL && res_len > 0) {
