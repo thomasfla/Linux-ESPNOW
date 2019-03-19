@@ -35,7 +35,6 @@ void ESPNOW_handler::set_recv_callback(void (*callback)(uint8_t src_mac[6], uint
 
 void ESPNOW_handler::set_filter(uint8_t *src_mac, uint8_t *dst_mac) {
 	//sudo tcpdump -i wlp5s0 'type 0 subtype 0xd0 and wlan[24:4]=0x7f18fe34 and wlan[32]=221 and wlan[33:4]&0xffffff = 0x18fe34 and wlan[37]=0x4 and wlan dst 11:22:33:44:55:66 and wlan src 77:88:99:aa:bb:cc' -dd
-	//this->bpf.len = 20;
 	this->bpf.len = 53;
 
 	uint32_t MSB_dst = MAC_2_MSBytes(dst_mac);
