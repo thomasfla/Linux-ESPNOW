@@ -22,7 +22,7 @@ void init_data() {
   }
 }
 
-#define NB_TRIES 1000
+#define N_BATCH 1000
 
 #define HISTO_INF 0
 #define HISTO_SUP 10000
@@ -36,8 +36,6 @@ int receiveNb;
 double avg;
 
 long batchStart =0;
-
-bool sendNew = true;
 
 unsigned long n_sent;
 
@@ -67,23 +65,24 @@ int fill_histo(long value) {
 }
 
 void print_histo() {
-  Serial.printf("Bounds\t%d\tµs\t%d\tµs", HISTO_INF, HISTO_SUP);
+  Serial.println("----------");
+  Serial.printf("Units :\tus");
   Serial.println();
-  Serial.printf("Nb out of bounds :");
+  Serial.printf("Bounds :\t%d\t%d", HISTO_INF, HISTO_SUP);
   Serial.println();
-  Serial.printf("Higher :\t%d\tLower :\t%d", histogram_higher, histogram_lower);
-  Serial.println();
-  Serial.printf("Histo :");
+  Serial.printf("Nb_values :\t%d", HISTO_N_STEP);
   Serial.println();
   for(int i=0;i<HISTO_N_STEP;i++) {
     Serial.printf("%d\t", histogram[i]);
   }
+  Serial.printf("%d",histogram_higher);
+  
   Serial.println();
-  Serial.printf("Average :\t%f\t", receiveNb != 0 ? avg/receiveNb : -1);
+  Serial.printf("Average :\t%d\t", receiveNb != 0 ? int(avg/receiveNb) : -1);
   Serial.println();
   Serial.printf("Received :\t%d", receiveNb);
   Serial.println();
-  Serial.printf("Errors :\t%d", error_nb);
+  Serial.printf("Sent :\t%d", n_sent);
   Serial.println();
 }
 
@@ -128,25 +127,11 @@ bool pairWithPeer() {
 
 // send data
 void sendData() {
-  if(n_sent < NB_TRIES) {
+  if(n_sent < N_BATCH) {
     long mytime = micros();
     memcpy(txData, &mytime, sizeof(mytime));
     esp_now_send(peer.peer_addr, txData, sizeof(txData[0])*DATA_LEN);
     n_sent++;
-  } else if (Serial) {
-    print_histo();
-    Serial.println();
-    Serial.println("--------------------------");
-    Serial.println();
-    
-    n_sent=0;
-
-    
-    Serial.println();
-    Serial.println("------New test :----------");
-    Serial.println();
-    init_histo();
-    batchStart = micros();
   }
 }
 
@@ -170,7 +155,6 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *rxData, int len) {
     } else {
       error_nb++;
     }
-    sendNew = true;
 }
 
 void setup() {
@@ -247,9 +231,20 @@ void setup() {
 
   n_sent = 0;
   
-  blinker.attach(0.001, sendData);
+  blinker.attach(0.01, sendData);
 }
 
 void loop() {
-  yield();
+  if(n_sent >= N_BATCH) {
+    delay(20);
+    
+    print_histo();
+    init_histo();
+    
+    n_sent=0;
+    batchStart = micros();
+    
+  } else {
+    yield();
+  }
 }
