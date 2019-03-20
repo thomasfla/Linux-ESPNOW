@@ -251,3 +251,12 @@ int ESPNOW_manager::send(uint8_t *payload, int len) {
 
 	return sendto(this->sock_fd, raw_bytes, raw_len, 0, NULL, 0);
 }
+
+int ESPNOW_manager::send() {
+	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
+
+	int raw_len = mypacket.toBytes(raw_bytes, LEN_RAWBYTES_MAX);
+
+	return sendto(this->sock_fd, raw_bytes, raw_len, 0, NULL, 0);
+}
+

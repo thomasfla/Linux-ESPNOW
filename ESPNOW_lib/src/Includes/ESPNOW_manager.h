@@ -56,19 +56,22 @@ class ESPNOW_manager {
 		
 		//int send(ESPNOW_packet p);
 		int send(uint8_t *payload, int len);
+		int send();
 		
 		void set_channel(uint16_t channel_freq) { mypacket.set_channel(channel_freq); }
 		void set_datarate(uint8_t datarate) { mypacket.set_datarate(datarate); }
 		void set_src_mac(uint8_t src_mac[6]) { mypacket.set_src_mac(src_mac); }
 		void set_dst_mac(uint8_t dst_mac[6]) { mypacket.set_dst_mac(dst_mac); }
 	
+
+		ESPNOW_packet mypacket;
 	private:
 		int sock_fd;
 		struct sock_fprog bpf;
 		int socket_priority;
 		char* interface;
 
-		ESPNOW_packet mypacket;
+		
 
 		pthread_t recv_thd_id;
 		struct thread_args recv_thread_params;
