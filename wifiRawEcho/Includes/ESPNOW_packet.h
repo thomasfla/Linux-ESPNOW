@@ -21,7 +21,7 @@ struct IEEE80211_vendorspecific {
 	uint8_t	OUI[3];			//0x18,0xfe, 0x34
 	uint8_t type;			//0x04
 	uint8_t version;		//0x01
-	uint8_t payload[250];
+	uint8_t payload[127];
 	
 } __attribute__((__packed__));
 

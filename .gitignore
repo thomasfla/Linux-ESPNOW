@@ -34,3 +34,5 @@
 wifiRawReceiver/bin/
 
 wifiRawEcho/bin/
+
+ESPNOW_lib/bin/
