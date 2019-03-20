@@ -231,12 +231,12 @@ void setup() {
 
   n_sent = 0;
   
-  blinker.attach(0.01, sendData);
+  blinker.attach(0.001, sendData);
 }
 
 void loop() {
   if(n_sent >= N_BATCH) {
-    delay(20);
+    delay(500);
     
     print_histo();
     init_histo();
