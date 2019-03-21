@@ -3,20 +3,29 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
-assert len(sys.argv)==3
-
-log_file = open(sys.argv[2],"a+")
-
-ser = serial.Serial(sys.argv[1], 115200)
-ser.flushInput()
+log_file = None
+ser = None
 
 n_plot = 0
+
+if(len(sys.argv)==3):
+	log_file = open(sys.argv[2],"a+")
+	ser = serial.Serial(sys.argv[1], 115200)
+	ser.flushInput()
+
+elif(len(sys.argv)==2):
+	ser = open(sys.argv[1],"r")
+
+assert(len(sys.argv)==2 or len(sys.argv)==3)
+
+
 
 print "Serial opened : " + str(sys.argv[1])
 
 def read(display=True):
 	line = ser.readline().rstrip()
-	log_file.write(line)
+	if(log_file != None):
+		log_file.write(line + '\n')
 	if(display):
 		print('\t' + line)
 	return line
@@ -90,4 +99,7 @@ while n_plot < 3:
 	else:
 		print("\033[34mLine not recognized \033[0m >> \033[33m" + line + "\033[0m")
 	
-raw_input("Press [enter] to continue.")
+try :
+	raw_input("Press [enter] to continue.")
+except:
+	pass
