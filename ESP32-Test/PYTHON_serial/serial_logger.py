@@ -42,6 +42,7 @@ def decode_histo():
 	avg = read_int(1)
 	recv = read_int(1)
 	sent = read_int(1)
+	recv_detail = read(False)
 
 	overtimed = histo[-1]
 	histo = histo[:-1]
@@ -59,9 +60,30 @@ def decode_histo():
 	histo = list(map(lambda x:x*100./sent, histo))
 	histo_cumulate = list(map(lambda x: x*100./sent, histo_cumulate))
 
+
+	recv_detail_bool = [False for _ in range(len(recv_detail)*8)]
+	for i in range(len(recv_detail)):
+		byte = int(recv_detail[i], 16)
+		for j in range(8):
+			recv_detail_bool[i*8+j] = ( byte&(1<<j) == 0)
+
+	histo_loss = [0 for _ in range(20)]
+	index = 0
+	current_serie = 0
+	while(index < len(recv_detail_bool)):
+		while(index < len(recv_detail_bool) and recv_detail_bool[index]):
+			current_serie += 1
+			index += 1
+		histo_loss[current_serie] += 1
+		current_serie = 0
+		index += 1
+
+	x_axis_loss = [i for i in range(len(histo_loss))]
+
+
 	plt.ion()
 
-	fig = plt.figure(n_plot)
+	fig = plt.figure(2*n_plot)
 	ax1 = fig.add_subplot(111)
 	ax2 = ax1.twinx()
 
@@ -86,6 +108,25 @@ def decode_histo():
 
 	fig.tight_layout()
 	fig.legend(["histogram", "cumulated", "95%", "hello"])
+	plt.grid()
+
+	plt.plot()
+
+
+
+
+	plt.ion()
+
+	fig = plt.figure(2*n_plot+1)
+	ax = fig.add_subplot(111)
+
+	plt.title('(' + str(n_plot) + ')' + 'Detail receive ')
+
+	plt.bar(x_axis_loss,histo_loss)
+	ax.set_ylabel('# groups')
+	ax.set_xlabel('group size')
+	ax.set_xticks(x_axis_loss)
+
 	plt.grid()
 
 	plt.plot()
