@@ -4,10 +4,13 @@
 
 // Global copy of slave
 esp_now_peer_info_t peer;
-#define CHANNEL 11
+#define CHANNEL 10
+#define DATARATE WIFI_PHY_RATE_12M
 
 #include <Ticker.h>  //Ticker Library
 Ticker blinker;
+
+#define TRY_ESP_ACTION(action, name) if(action == ESP_OK) {Serial.println("\t+ "+String(name));} else {Serial.println("----------Error while " + String(name) + " !---------------");}
 
 static byte dest_mac[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; //broadcast
 //static byte dest_mac[6] = {0xf8, 0x1a, 0x67, 0xb7, 0xeb, 0x0b}; //computers
@@ -31,8 +34,9 @@ void init_data() {
 int histogram[HISTO_N_STEP];
 int histogram_higher;
 int histogram_lower;
-int error_nb;
+int error_recv;
 int receiveNb;
+int error_send;
 double avg;
 
 long batchStart =0;
@@ -45,7 +49,8 @@ void init_histo() {
   }
   histogram_higher = 0;
   histogram_lower = 0;
-  error_nb=0;
+  error_recv=0;
+  error_send=0;
   receiveNb=0;
   avg=0;
 }
@@ -63,6 +68,8 @@ int fill_histo(long value) {
   receiveNb++;
   avg += value;
 }
+
+wifi_config_t wifi_config;
 
 void print_histo() {
   Serial.println("----------");
@@ -82,48 +89,10 @@ void print_histo() {
   Serial.println();
   Serial.printf("Received :\t%d", receiveNb);
   Serial.println();
-  Serial.printf("Sent :\t%d", n_sent);
+  Serial.printf("Sent :\t%d", n_sent-error_send);
   Serial.println();
 }
 
-
-bool pairWithPeer() {
-  memset(&peer, 0, sizeof(peer));
-
-  for (int ii = 0; ii < 6; ++ii ) {
-    peer.peer_addr[ii] = (uint8_t) dest_mac[ii];
-  }
-  
-  peer.channel = CHANNEL; // pick a channel
-  peer.encrypt = 0; // no encryption
-      
-  esp_err_t addStatus = esp_now_add_peer(&peer);
-  
-  if (addStatus == ESP_OK) {
-    // Pair success
-    Serial.println("Pair success");
-    return true;
-  } else if (addStatus == ESP_ERR_ESPNOW_NOT_INIT) {
-    // How did we get so far!!
-    Serial.println("ESPNOW Not Init");
-    return false;
-  } else if (addStatus == ESP_ERR_ESPNOW_ARG) {
-    Serial.println("Invalid Argument");
-    return false;
-  } else if (addStatus == ESP_ERR_ESPNOW_FULL) {
-    Serial.println("Peer list full");
-    return false;
-  } else if (addStatus == ESP_ERR_ESPNOW_NO_MEM) {
-    Serial.println("Out of memory");
-    return false;
-  } else if (addStatus == ESP_ERR_ESPNOW_EXIST) {
-    Serial.println("Peer Exists");
-    return true;
-  } else {
-    Serial.println("Not sure what happened");
-    return false;
-  }
-}
 
 // send data
 void sendData() {
@@ -135,11 +104,11 @@ void sendData() {
   }
 }
 
-// callback when data is sent from Master to Slave
+
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  char macStr[18];
-  snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
-           mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+  if(status != ESP_OK) {
+    error_send++;
+  }
 }
 
 void OnDataRecv(const uint8_t *mac, const uint8_t *rxData, int len) {
@@ -153,7 +122,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *rxData, int len) {
         fill_histo(receiveTime - sendTime);
       }
     } else {
-      error_nb++;
+      error_recv++;
     }
 }
 
@@ -162,75 +131,53 @@ void setup() {
 
   WiFi.disconnect();
   //Set device in STA mode to begin with
+
   WiFi.mode(WIFI_STA);
   
   Serial.println("ESPNow/Basic/Master Example");
   // This is the mac address of the Master in Station Mode
   Serial.print("STA MAC: "); Serial.println(WiFi.macAddress());
-  
-  if(esp_wifi_stop() == ESP_OK) {
-    Serial.println("Stop WIFI");
-  } else {
-    Serial.println("----------Error while stop wifi !---------------");
-  }
 
+  TRY_ESP_ACTION( esp_wifi_stop(), "stop WIFI");
   
-  if(esp_wifi_deinit() == ESP_OK) {
-    Serial.println("De init");
-  } else {
-    Serial.println("----------Error while de init !---------------");
-  }
+  TRY_ESP_ACTION( esp_wifi_deinit(), "De init");
 
-  
   wifi_init_config_t my_config = WIFI_INIT_CONFIG_DEFAULT();
   my_config.ampdu_tx_enable = 0;
   
-  if(esp_wifi_init(&my_config) == ESP_OK) {
-    Serial.println("Disabled AMPDU");
-  } else {
-    Serial.println("----------Error while re init ! (AMPDU)---------------");
-  }
+  TRY_ESP_ACTION( esp_wifi_init(&my_config), "Disable AMPDU");
+  
+  TRY_ESP_ACTION( esp_wifi_start(), "Restart WiFi");
 
+  //TRY_ESP_ACTION( esp_wifi_set_channel(CHANNEL, WIFI_SECOND_CHAN_NONE), "Set channel");
+  /*
+  TRY_ESP_ACTION( esp_wifi_get_config(ESP_IF_WIFI_STA, &wifi_config), "Get config");
   
-  if(esp_wifi_start() == ESP_OK) {
-    Serial.println("Restarting WiFi");
-  } else {
-    Serial.println("----------Error while re start !---------------");
-  }
+  wifi_config.sta.channel = CHANNEL;
+  
+  TRY_ESP_ACTION( esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config), "Set config (channel)");
+  */
+  TRY_ESP_ACTION( esp_wifi_internal_set_fix_rate(ESP_IF_WIFI_STA, true, DATARATE), "Fixed rate set up");
 
-  
-  if(esp_wifi_internal_set_fix_rate(ESP_IF_WIFI_STA, true, WIFI_PHY_RATE_54M) == ESP_OK) {
-    Serial.println("Fixed rate set up");
-  } else {
-    Serial.println("----------Error setting up fixed rate !---------------");
-  }
+  TRY_ESP_ACTION( esp_now_init(), "ESPNow Init");
 
-  if (esp_now_init() == ESP_OK) {
-    Serial.println("ESPNow Init Success");
-  } else {
-    Serial.println("ESPNow Init Failed");
-    ESP.restart();
+  TRY_ESP_ACTION(  esp_now_register_send_cb(OnDataSent), "Attach send callback");
+  
+  TRY_ESP_ACTION( esp_now_register_recv_cb(OnDataRecv), "Attach recv callback");
+  
+  memset(&peer, 0, sizeof(peer));
+
+  for (int ii = 0; ii < 6; ++ii ) {
+    peer.peer_addr[ii] = (uint8_t) dest_mac[ii];
   }
   
-  // Once ESPNow is successfully Init, we will register for Send CB to
-  // get the status of Trasnmitted packet
-  esp_now_register_send_cb(OnDataSent);
-  if(esp_now_register_recv_cb(OnDataRecv) != ESP_OK) {
-    Serial.println("ERROR WITH RECEIVE CALLBACK !");
-    ESP.restart();
-  } else {
-    Serial.println("Receive cb OK");
-  }
-  init_data();
-  
-  bool isPaired = pairWithPeer();
-  if(!isPaired) {
-    Serial.println("Slave pair failed!");
-    ESP.restart();
-  }
+  peer.channel = 0; // pick a channel
+  peer.encrypt = 0; // no encryption
+      
+  TRY_ESP_ACTION( esp_now_add_peer(&peer), "Add peer");
 
   n_sent = 0;
-  
+  init_data();
   blinker.attach(0.001, sendData);
 }
 

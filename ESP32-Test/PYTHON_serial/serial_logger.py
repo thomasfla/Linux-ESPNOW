@@ -16,11 +16,12 @@ if(len(sys.argv)==3):
 elif(len(sys.argv)==2):
 	ser = open(sys.argv[1],"r")
 
+
 assert(len(sys.argv)==2 or len(sys.argv)==3)
 
 
-
 print "Serial opened : " + str(sys.argv[1])
+
 
 def read(display=True):
 	line = ser.readline().rstrip()

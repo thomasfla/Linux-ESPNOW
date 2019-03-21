@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 
 	nice(-20);
 
-	handler = new ESPNOW_manager(argv[1], DATARATE_54Mbps, CHANNEL_freq_11, my_mac, dest_mac, false);
+	handler = new ESPNOW_manager(argv[1], DATARATE_12Mbps, CHANNEL_freq_10, my_mac, dest_mac, false);
 
 	handler->set_filter(ESP_mac, dest_mac);
 
