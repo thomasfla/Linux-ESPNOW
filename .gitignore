@@ -40,3 +40,5 @@ ESPNOW_lib/bin/
 ESP32-Test/PYTHON_serial/test\.txt
 
 *.txt
+
+*.pyc

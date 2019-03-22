@@ -59,27 +59,26 @@ def decode_histo():
 
 	histo = list(map(lambda x:x*100./sent, histo))
 	histo_cumulate = list(map(lambda x: x*100./sent, histo_cumulate))
+	
+	
+	histo_loss = [0 for _ in range(20)]
+	current_serie = 0
 
-
-	recv_detail_bool = [False for _ in range(len(recv_detail)*8)]
 	for i in range(len(recv_detail)):
 		byte = int(recv_detail[i], 16)
-		for j in range(8):
-			recv_detail_bool[i*8+j] = ( byte&(1<<j) == 0)
+		for j in range(4):
+			if(byte&(1<<j) == 0):
+				current_serie += 1
+			else:
+				histo_loss[current_serie] += 1
+				current_serie = 0
 
-	histo_loss = [0 for _ in range(20)]
-	index = 0
-	current_serie = 0
-	while(index < len(recv_detail_bool)):
-		while(index < len(recv_detail_bool) and recv_detail_bool[index]):
-			current_serie += 1
-			index += 1
-		histo_loss[current_serie] += 1
-		current_serie = 0
-		index += 1
 
 	x_axis_loss = [i for i in range(len(histo_loss))]
-
+	total = 0
+	for h in histo_loss:
+		total+=h
+	print(total)
 
 	plt.ion()
 
