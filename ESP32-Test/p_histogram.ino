@@ -2,8 +2,10 @@
 #define HISTO_SUP 10000
 #define HISTO_N_STEP 100
 
-#define recv_list_len N_BATCH/8
-#define packet_received(p) recv_list[p/8] |= 1<<p%8
+#define recv_list_len N_BATCH/6
+#define packet_received(p) recv_list[p/6] |= 1<<p%6
+
+static String base = "0123456789+/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 byte recv_list[recv_list_len];
 int histogram[HISTO_N_STEP];
@@ -69,7 +71,7 @@ void print_histo() {
   Serial.printf("Sent :\t%d", n_sent-error_send);
   Serial.println();
   for(int i=0;i<recv_list_len;i++) {
-    Serial.printf("%x", recv_list[i]);
+    Serial.print(base[recv_list[i]]);
   }
   Serial.println();
 }

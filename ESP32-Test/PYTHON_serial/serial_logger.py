@@ -3,6 +3,8 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+base = "0123456789+/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 log_file = None
 ser = None
 
@@ -59,15 +61,15 @@ def decode_histo():
 
 	histo = list(map(lambda x:x*100./sent, histo))
 	histo_cumulate = list(map(lambda x: x*100./sent, histo_cumulate))
-	
-	
+
+
 	histo_loss = [0 for _ in range(20)]
 	current_serie = 0
 
 	for i in range(len(recv_detail)):
-		byte = int(recv_detail[i], 16)
-		for j in range(4):
-			if(byte&(1<<j) == 0):
+		word = base.index(recv_detail[i])
+		for j in range(6):
+			if(word&(1<<j) == 0):
 				current_serie += 1
 			else:
 				histo_loss[current_serie] += 1
