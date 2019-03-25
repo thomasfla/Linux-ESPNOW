@@ -24,14 +24,8 @@ void setup() {
   
   TRY_ESP_ACTION( esp_wifi_start(), "Restart WiFi");
 
-  //TRY_ESP_ACTION( esp_wifi_set_channel(CHANNEL, WIFI_SECOND_CHAN_NONE), "Set channel");
-  /*
-  TRY_ESP_ACTION( esp_wifi_get_config(ESP_IF_WIFI_STA, &wifi_config), "Get config");
-  
-  wifi_config.sta.channel = CHANNEL;
-  
-  TRY_ESP_ACTION( esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config), "Set config (channel)");
-  */
+  TRY_ESP_ACTION( esp_wifi_set_channel(CHANNEL, WIFI_SECOND_CHAN_NONE), "Set channel");
+
   TRY_ESP_ACTION( esp_wifi_internal_set_fix_rate(ESP_IF_WIFI_STA, true, DATARATE), "Fixed rate set up");
 
   TRY_ESP_ACTION( esp_now_init(), "ESPNow Init");
@@ -46,7 +40,7 @@ void setup() {
     peer.peer_addr[ii] = (uint8_t) dest_mac[ii];
   }
   
-  peer.channel = 0; // pick a channel
+  peer.channel = CHANNEL; // pick a channel
   peer.encrypt = 0; // no encryption
       
   TRY_ESP_ACTION( esp_now_add_peer(&peer), "Add peer");
