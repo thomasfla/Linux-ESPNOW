@@ -21,7 +21,7 @@ ESPNOW_manager *handler;
 uint8_t payload[127];
 
 void callback(uint8_t src_mac[6], uint8_t *data, int len) {
-	handler->mypacket.wlan.actionframe.content.length = 132;
+	handler->mypacket.wlan.actionframe.content.length = 127 + 5;
 	memcpy(handler->mypacket.wlan.actionframe.content.payload, data, 6);
 	//handler->set_dst_mac(dest_mac);
 	handler->send();

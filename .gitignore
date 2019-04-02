@@ -42,3 +42,11 @@ ESP32-Test/PYTHON_serial/test\.txt
 *.txt
 
 *.pyc
+
+*.png
+
+*.pcapng
+
+ESP32-Test/PYTHON_serial/channel_study\.py
+
+ESP32-Test/PYTHON_serial/datarate_study\.py
