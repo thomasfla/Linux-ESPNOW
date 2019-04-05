@@ -5,8 +5,7 @@
 #define recv_list_len N_BATCH/6
 #define packet_received(p) recv_list[p/6] |= 1<<p%6
 
-static String base = "0123456789+/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
+char base[64] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 byte recv_list[recv_list_len];
 int histogram[HISTO_N_STEP];
 int histogram_higher;
@@ -71,7 +70,7 @@ void print_histo() {
   Serial.printf("Sent :\t%d", n_sent-error_send);
   Serial.println();
   for(int i=0;i<recv_list_len;i++) {
-    Serial.print(base[recv_list[i]]);
+    Serial.printf("%c",base[recv_list[i]]);
   }
   Serial.println();
 }
