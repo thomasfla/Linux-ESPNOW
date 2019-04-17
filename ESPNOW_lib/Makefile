@@ -1,6 +1,6 @@
 
 CC = g++
-CFLAGS  = -g -Wall
+CFLAGS  = -g -Wall -std=c++11
 INCLUDES = -I src/Includes/
 
 default: all
