@@ -52,7 +52,7 @@ void setup() {
 
 void loop() {
   if(n_sent >= N_BATCH) {
-    delay(500);
+    delay(2000);
     
     print_histo();
     init_histo();

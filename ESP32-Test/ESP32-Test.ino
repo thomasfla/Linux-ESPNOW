@@ -4,8 +4,8 @@
 
 #include <Ticker.h>  //Ticker Library
 
-#define CHANNEL 10
-#define DATARATE WIFI_PHY_RATE_12M
+#define CHANNEL 9
+#define DATARATE WIFI_PHY_RATE_24M
 
 #define N_BATCH 1000
 
