@@ -43,7 +43,6 @@
 
 #define HOST_IP_ADDR "192.168.142.1" //"192.168.142.255"
 
-
 #define PORT_DEST 1111
 
 #define DEVICE_IP       "192.168.142.2"
@@ -57,11 +56,25 @@
 
 #define WIFI_CONNECTED_BIT BIT0
 
-static uint8_t my_mac[6] = {0x1,0x2,0x3,0x4,0x5,0x6};
+static uint8_t dest_mac[6] = {0x00, 0x04, 0x23, 0xc5, 0xa8, 0x6b};
+static uint8_t my_mac[6] = {0xb4, 0xe6, 0x2d, 0xb5, 0x9f, 0x88};
 
 static const char *TAG = "example";
-static const char *payload = "Message from ESP32 ";
+//static const char *payload = {0x1,0x2,0x3,0x4,0x5,0x6, 0x1,0x2,0x3,0x4,0x5,0x6, 'H','E','L','L','O',' ','W','O','R','L','D', '\0'};
 
+
+static const char *payload = "Hello World";
+
+typedef struct {
+  uint8_t dst_mac[6];
+  uint8_t src_mac[6];
+  uint16_t ethertype;
+
+  /* Custom payload*/
+  uint16_t data_len;
+  char data[127];
+
+} eth_frame;
 
 /* FreeRTOS event group to signal when we are connected to WiFi and ready to start UDP comm*/
 EventGroupHandle_t udp_event_group;
@@ -69,74 +82,27 @@ EventGroupHandle_t udp_event_group;
 
 static void udp_client_task(void *pvParameters)
 {
-    char rx_buffer[128];
-    char addr_str[128];
-    int addr_family;
-    int ip_protocol;
+    eth_frame my_frame;
+
+
+    my_frame.ethertype = 0xb588;
+    memcpy(my_frame.dst_mac, dest_mac, sizeof(uint8_t) * 6);  
+    memcpy(my_frame.src_mac, my_mac, sizeof(uint8_t) * 6);
+    my_frame.data_len = sizeof(char) * strlen(payload);
+    strncpy(my_frame.data, payload, my_frame.data_len);
 
     while (1) {
 
-        struct sockaddr_in dest_addr;
-        dest_addr.sin_addr.s_addr = inet_addr(HOST_IP_ADDR);
-        dest_addr.sin_family = AF_INET;
-        dest_addr.sin_port = htons(PORT_DEST);
+      int err = esp_eth_tx((uint8_t *) &my_frame, my_frame.data_len + 16 * sizeof(uint8_t));
+      if (err < 0) {
+          ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+          break;
+      }
+      ESP_LOGI(TAG, "Message sent");
 
-        addr_family = AF_INET;
-        ip_protocol = IPPROTO_IP;
-
-        inet_ntoa_r(dest_addr.sin_addr, addr_str, sizeof(addr_str) - 1);
-
-        int sock = socket(addr_family, SOCK_DGRAM, ip_protocol);
-        if (sock < 0) {
-            ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
-            break;
-        }
-        ESP_LOGI(TAG, "Socket created, sending to %s:%d", HOST_IP_ADDR, PORT_DEST);
-
-        struct timeval tv;
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-        if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0) {
-            perror("Error");
-        }
-
-        char broadcast = '1';
-        setsockopt(sock,SOL_SOCKET,SO_BROADCAST,&broadcast,sizeof(broadcast));
-
-        while (1) {
-
-            int err = sendto(sock, payload, strlen(payload), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
-            if (err < 0) {
-                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
-                break;
-            }
-            ESP_LOGI(TAG, "Message sent");
-
-            struct sockaddr_in source_addr; // Large enough for both IPv4 or IPv6
-            socklen_t socklen = sizeof(source_addr);
-            int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
-
-            // Error occurred during receiving
-            if (len < 0) {
-                ESP_LOGE(TAG, "recvfrom failed: errno %d", errno);
-                break;
-            }
-            // Data received
-            else {
-                rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
-                ESP_LOGI(TAG, "Received %d bytes from %s:", len, addr_str);
-                ESP_LOGI(TAG, "%s", rx_buffer);
-            }
-
-            vTaskDelay(2000 / portTICK_PERIOD_MS);
-        }
-
-        if (sock != -1) {
-            ESP_LOGE(TAG, "Shutting down socket and restarting...");
-            shutdown(sock, 0);
-            close(sock);
-        }
+      vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
+
     vTaskDelete(NULL);
 }
 
@@ -197,6 +163,11 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
   return ESP_OK;
 }
 
+esp_err_t *my_recv_func (void *buffer, uint16_t len, void *eb) {
+  printf("Data: %s\n" , ((eth_frame *) buffer)->data);
+  return ESP_OK;
+}
+
 
 void init_eth() {
     ////////////////////////////////////
@@ -228,7 +199,7 @@ void init_eth() {
         eth_config_t config = ETHERNET_PHY_CONFIG;
         config.phy_addr = PHY1;
         config.gpio_config = eth_gpio_config_rmii;
-        config.tcpip_input = tcpip_adapter_eth_input;
+        config.tcpip_input = my_recv_func;
         config.clock_mode = CONFIG_PHY_CLOCK_MODE;
 
         ESP_ERROR_CHECK(esp_eth_init(&config));
