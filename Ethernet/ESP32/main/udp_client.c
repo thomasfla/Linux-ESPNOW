@@ -7,47 +7,23 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <string.h>
-#include <sys/param.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
-#include "esp_system.h"
-#include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "tcpip_adapter.h"
-#include "protocol_examples_common.h"
 
-#include "lwip/err.h"
-#include "lwip/sockets.h"
-#include "lwip/sys.h"
-#include <lwip/netdb.h>
-
-#include <string.h>
-#include "protocol_examples_common.h"
 #include "sdkconfig.h"
-#include "esp_event.h"
-#include "esp_wifi.h"
 #include "esp_eth.h"
-#include "esp_log.h"
-#include "tcpip_adapter.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "lwip/err.h"
-#include "lwip/sys.h"
 
 #include "eth_phy/phy_lan8720.h"
 
 
-#define HOST_IP_ADDR "192.168.142.1" //"192.168.142.255"
-
-#define PORT_DEST 1111
-
-#define DEVICE_IP       "192.168.142.2"
+#define DEVICE_IP       "192.168.1.0"
 #define DEVICE_NETMASK  "255.255.255.0"
-#define DEVICE_GW       "192.168.142.1"
+#define DEVICE_GW       "192.168.1.1"
 
 #define CONFIG_PHY_CLOCK_MODE 3
 #define ETHERNET_PHY_CONFIG phy_lan8720_default_ethernet_config
@@ -56,12 +32,10 @@
 
 #define WIFI_CONNECTED_BIT BIT0
 
-static uint8_t dest_mac[6] = {0x00, 0x04, 0x23, 0xc5, 0xa8, 0x6b};
+static uint8_t dest_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};//{0x00, 0x04, 0x23, 0xc5, 0xa8, 0x6b};
 static uint8_t my_mac[6] = {0xb4, 0xe6, 0x2d, 0xb5, 0x9f, 0x88};
 
 static const char *TAG = "example";
-//static const char *payload = {0x1,0x2,0x3,0x4,0x5,0x6, 0x1,0x2,0x3,0x4,0x5,0x6, 'H','E','L','L','O',' ','W','O','R','L','D', '\0'};
-
 
 static const char *payload = "Hello World";
 
@@ -129,33 +103,6 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
       //ESP_LOGI(TAG, "got ip:%s\n",
       //    ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
       xEventGroupSetBits(udp_event_group, WIFI_CONNECTED_BIT);
-      break;
-    case SYSTEM_EVENT_STA_START:
-      esp_wifi_connect();
-      break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-      esp_wifi_connect();
-      xEventGroupClearBits(udp_event_group, WIFI_CONNECTED_BIT);
-      break;
-    case SYSTEM_EVENT_STA_CONNECTED:
-      break;
-    case SYSTEM_EVENT_STA_GOT_IP:
-      ESP_LOGI(TAG, "event_handler:SYSTEM_EVENT_STA_GOT_IP!");
-      ESP_LOGI(TAG, "got ip:%s\n",
-          ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-      xEventGroupSetBits(udp_event_group, WIFI_CONNECTED_BIT);
-      break;
-    case SYSTEM_EVENT_AP_STACONNECTED:
-      ESP_LOGI(TAG, "station:"MACSTR" join,AID=%d\n",
-          MAC2STR(event->event_info.sta_connected.mac),
-          event->event_info.sta_connected.aid);
-      xEventGroupSetBits(udp_event_group, WIFI_CONNECTED_BIT);
-      break;
-    case SYSTEM_EVENT_AP_STADISCONNECTED:
-      ESP_LOGI(TAG, "station:"MACSTR"leave,AID=%d\n",
-          MAC2STR(event->event_info.sta_disconnected.mac),
-          event->event_info.sta_disconnected.aid);
-      xEventGroupClearBits(udp_event_group, WIFI_CONNECTED_BIT);
       break;
     default:
       break;
