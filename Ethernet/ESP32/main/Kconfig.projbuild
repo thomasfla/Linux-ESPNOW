@@ -1,38 +1,64 @@
 menu "Example Configuration"
 
-    choice EXAMPLE_IP_MODE
-        prompt "IP Version"
+    choice DATARATE
+        prompt "WiFi datarate"
+        default DATARATE_24
         help
-            Example can use either IPV4 or IPV6.
+            WiFi datarate.
 
-        config EXAMPLE_IPV4
-            bool "IPV4"
-
-        config EXAMPLE_IPV6
-            bool "IPV6"
-            select EXAMPLE_CONNECT_IPV6
-
+        config DATARATE_6
+            bool "6 MBps"
+        config DATARATE_9
+            bool "9 MBps"
+        config DATARATE_12
+            bool "12 MBps"
+        config DATARATE_18
+            bool "18 MBps"
+        config DATARATE_24
+            bool "24 MBps"
+        config DATARATE_36
+            bool "36 MBps"
+        config DATARATE_48
+            bool "48 MBps"
+        config DATARATE_56
+            bool "56 MBps"
     endchoice
 
-    config EXAMPLE_IPV4_ADDR
-        string "IPV4 Address"
-        default "192.168.0.165"
-        depends on EXAMPLE_IPV4
+    config BATCH_SIZE
+        int "Packet batch size"
+        range 1 10000000
+        default 1000
         help
-            IPV4 address to which the client example will send data.
+            Number of packets that will be test to measure (on average) what we want.
 
-    config EXAMPLE_IPV6_ADDR
-        string "IPV6 Address"
-        default "FE80::30AD:E57B:C212:68AD"
-        depends on EXAMPLE_IPV6
+    config DATA_LEN
+        int "Test data length"
+        default 127
+        range 0 255
         help
-            IPV6 address to which the client example will send data.
+            Length of the data that will be send to test round trip time.
 
-    config EXAMPLE_PORT
-        int "Port"
-        range 0 65535
-        default 3333
-        help
-            The remote port to which the client example will send data.
+    menu "Histogram Config"
+
+        config HISTO_INF
+            int "Lower bound (us)"
+            default 0
+            help
+                Minimum of the histogram range (in us).
+                /!\ Must be lower than Upper bound.
+
+        config HISTO_SUP
+            int "Upper bound (us)"
+            default 10000
+            help
+                Minimum of the histogram range (in us).
+                /!\ Must be greater than Lower bound.
+
+        config HISTO_N_STEP
+            int "Bucket number"
+            default 100
+            help
+                Number of buckets (a.k.a sub-ranges) in which the main range will be divided into.
+    endmenu
 
 endmenu

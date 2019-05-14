@@ -65,7 +65,7 @@ int main(void)
 
 	while(1)
 	{
-		printf("Waiting for data...");
+		/* printf("Waiting for data..."); */
 		fflush(stdout);
 		
 		//try to receive some data, this is a blocking call
@@ -75,12 +75,14 @@ int main(void)
 			die("recvfrom()");
 		}
 		
+		/*
 		//print details of the data received
 		printf("Data:");
 		for(int i=0;i<my_frame.data_len;i++) {
 			printf("%c", my_frame.data[i]);
 		}
 		printf("\n");
+		*/
 		
 		uint8_t temp_mac[6];
 
