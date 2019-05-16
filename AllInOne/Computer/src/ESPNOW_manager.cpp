@@ -215,9 +215,9 @@ void* ESPNOW_manager::sock_recv_thread (void *p_arg)
         }
         else
         {
-        	res_mac = ESPNOW_packet::get_src_mac(raw_bytes,raw_bytes_len);
-        	res_payload = ESPNOW_packet::get_payload(raw_bytes, raw_bytes_len);
-        	res_len = ESPNOW_packet::get_payload_len(raw_bytes, raw_bytes_len);
+        	res_mac = ESPNOW_packet::get_src_mac_FromRaw(raw_bytes,raw_bytes_len);
+        	res_payload = ESPNOW_packet::get_payload_FromRaw(raw_bytes, raw_bytes_len);
+        	res_len = ESPNOW_packet::get_payload_len_FromRaw(raw_bytes, raw_bytes_len);
         	if(res_mac != NULL && res_payload != NULL && res_len > 0) {
         		params.callback(res_mac, res_payload, res_len);
         	}
@@ -244,10 +244,10 @@ int ESPNOW_manager::send(uint8_t *payload, int len) {
 
 	//Not the most fastest way to do this : 
 	//	copy the payload in the packet array and then copy it back into the buffer...
-	this->mypacket.wlan.actionframe.content.set_length(len); 
-	memcpy(this->mypacket.wlan.actionframe.content.payload, payload, len);
+	this->mypacket->set_payload_len(len); 
+	memcpy(this->mypacket->get_payload_ptr(), payload, len);
 
-	int raw_len = mypacket.toBytes(raw_bytes, LEN_RAWBYTES_MAX);
+	int raw_len = mypacket->toBytes(raw_bytes, LEN_RAWBYTES_MAX);
 
 	return sendto(this->sock_fd, raw_bytes, raw_len, 0, NULL, 0);
 }
@@ -255,7 +255,7 @@ int ESPNOW_manager::send(uint8_t *payload, int len) {
 int ESPNOW_manager::send() {
 	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
 
-	int raw_len = mypacket.toBytes(raw_bytes, LEN_RAWBYTES_MAX);
+	int raw_len = mypacket->toBytes(raw_bytes, LEN_RAWBYTES_MAX);
 
 	return sendto(this->sock_fd, raw_bytes, raw_len, 0, NULL, 0);
 }

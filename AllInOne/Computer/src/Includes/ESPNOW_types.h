@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "LINK_types.h"
+
 #define DATARATE_1Mbps 0x02
 #define DATARATE_2Mbps 0x04
 #define DATARATE_6Mbps 0x0c
@@ -75,7 +77,7 @@ struct IEEE80211_vendorspecific {
 		this->version = 0x01;
 	}
 
-	void set_length(int length) {this->length = length + 5;}
+	void set_length(int payload_length) {this->length = payload_length + 5;}
 } __attribute__((__packed__));
 
 
@@ -118,21 +120,29 @@ struct IEEE80211_wlan {
 } __attribute__((__packed__));
 
 
-typedef struct {
+typedef struct : Packet_t {
 	struct IEEE80211_radiotap radiotap;
 	struct IEEE80211_wlan wlan;
 
 	void set_channel(uint16_t channel_freq);
 	void set_datarate(uint8_t datarate);
-	void set_src_mac(uint8_t my_mac[6]);
-	void set_dst_mac(uint8_t dst_mac[6]);
-	
-	int toBytes(uint8_t *bytes, int max_len);
 
-	static int get_radiotap_len(uint8_t *raw_bytes, int len);
-	static uint8_t* get_src_mac(uint8_t *raw_bytes, int len);
-	static int get_payload_len(uint8_t *raw_bytes, int len);
-	static uint8_t* get_payload(uint8_t *raw_bytes, int len);
+
+	/** Start overriding inherited methods **/
+	void set_src_mac(uint8_t my_mac[6]) 		override;
+	void set_dst_mac(uint8_t dst_mac[6]) 		override;
+	
+	int toBytes(uint8_t *bytes, int max_len) 	override;
+	uint8_t* get_payload_ptr() 					override;
+	int get_payload_len() 						override;
+	void set_payload_len(int len) 				override;
+	/** Finish overriding inherited methods **/
+
+
+	static int get_radiotap_len_FromRaw(uint8_t *raw_bytes, int len);
+	static uint8_t* get_src_mac_FromRaw(uint8_t *raw_bytes, int len);
+	static int get_payload_len_FromRaw(uint8_t *raw_bytes, int len);
+	static uint8_t* get_payload_FromRaw(uint8_t *raw_bytes, int len);
 
 } __attribute__((__packed__)) ESPNOW_packet;
 
