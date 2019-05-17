@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "LINK_types.h"
+#include "Link_types.h"
 
 #define DATARATE_1Mbps 0x02
 #define DATARATE_2Mbps 0x04
@@ -136,13 +136,14 @@ typedef struct : Packet_t {
 	uint8_t* get_payload_ptr() 					override;
 	int get_payload_len() 						override;
 	void set_payload_len(int len) 				override;
+
+	uint8_t* get_src_mac_FromRaw(uint8_t *raw_bytes, int len)	override;
+	int get_payload_len_FromRaw(uint8_t *raw_bytes, int len)	override;
+	uint8_t* get_payload_FromRaw(uint8_t *raw_bytes, int len)	override;
 	/** Finish overriding inherited methods **/
 
 
 	static int get_radiotap_len_FromRaw(uint8_t *raw_bytes, int len);
-	static uint8_t* get_src_mac_FromRaw(uint8_t *raw_bytes, int len);
-	static int get_payload_len_FromRaw(uint8_t *raw_bytes, int len);
-	static uint8_t* get_payload_FromRaw(uint8_t *raw_bytes, int len);
 
 } __attribute__((__packed__)) ESPNOW_packet;
 

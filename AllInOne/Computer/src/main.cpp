@@ -46,6 +46,8 @@ int main(int argc, char **argv) {
 
 	handler->start();
 
+	((ESPNOW_manager *) handler)->bind_filter();
+
 	while(1) {
 		std::this_thread::yield();
 	}

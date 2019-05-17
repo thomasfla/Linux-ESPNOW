@@ -9,7 +9,7 @@ default: all
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(INCLUDES) -o bin/$@ -c $^
 
-app: main.o ESPNOW_manager.o ESPNOW_types.o
+app: main.o ESPNOW_manager.o ESPNOW_types.o Link_manager.o
 	$(CC) $(CFLAGS) -o bin/exec $(addprefix bin/,$^) -pthread
 
 

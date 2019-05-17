@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <assert.h>
 
+#include <stdio.h>
+
 void ESPNOW_packet::set_channel(uint16_t channel_freq) {
 this->radiotap.channel_freq = channel_freq;
 }
@@ -23,12 +25,13 @@ void ESPNOW_packet::set_dst_mac(uint8_t dst_mac[6]) {
 	memcpy(this->wlan.bssid, dst_mac, sizeof(uint8_t)*6);
 }
 
+
 int ESPNOW_packet::toBytes(uint8_t *bytes, int max_len) {	
 	int correct_len = sizeof(ESPNOW_packet) - Packet_t::OFFSET() + this->wlan.actionframe.content.length - 0xff;
 	
 	assert(correct_len <= max_len); 
 
-	memcpy(bytes, ((void* )this) + Packet_t::OFFSET(), correct_len);	
+	memcpy(bytes, (void *) this + Packet_t::OFFSET(), correct_len);	
 	
 	memcpy(bytes + correct_len - sizeof(this->wlan.fcs), &(this->wlan.fcs), sizeof(this->wlan.fcs));
 

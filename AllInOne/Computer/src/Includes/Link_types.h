@@ -14,7 +14,12 @@ struct Packet_t{
 
 	virtual void set_payload_len(int len) 			 = 0;
 
+	virtual uint8_t* get_src_mac_FromRaw(uint8_t *raw_bytes, int len)	= 0;
+	virtual int get_payload_len_FromRaw(uint8_t *raw_bytes, int len)	= 0;
+	virtual uint8_t* get_payload_FromRaw(uint8_t *raw_bytes, int len)	= 0;
+
 	Packet_t *mypacket;
+	
 } __attribute__((__packed__));
 
 
