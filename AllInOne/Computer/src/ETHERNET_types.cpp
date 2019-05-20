@@ -1,11 +1,9 @@
 #include "ETHERNET_types.h"
 
-#include <stdint.h>
-#include <string.h>
-#include <sys/types.h>
-#include <assert.h>
 
-#include <stdio.h>
+#include <assert.h>
+#include <string.h>
+
 
 #define max(a,b) (a>b ? a : b)
 

@@ -1,13 +1,15 @@
 #ifndef ETHERNET_TYPES_H
 #define ETHERNET_TYPES_H
 
-#include <string.h>
+
 #include <stdint.h>
 
 #include "Link_types.h"
 
+
 #define ETH_RECV_SIZE_MIN 16
 #define ETH_SEND_SIZE_MIN 64
+
 
 struct ETHERNET_data {
 	uint8_t dst_mac[6];

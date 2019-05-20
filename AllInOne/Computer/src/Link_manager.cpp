@@ -1,9 +1,6 @@
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <stdint.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -15,7 +12,6 @@
 
 #include "Link_manager.h"
 
-#include "Link_types.h"
 
 void LINK_manager::set_interface(char* interface) {
 	this->interface = (char*) malloc(strlen(interface)*sizeof(char));	

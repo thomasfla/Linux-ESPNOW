@@ -1,24 +1,16 @@
-
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <stdint.h>
-#include <pthread.h>
-#include <unistd.h>
 
 #include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <linux/if_arp.h>
 #include <arpa/inet.h>
 #include <assert.h>
 
 #include "ESPNOW_manager.h"
 
-#include "ESPNOW_types.h"
 
 #define MAC_2_MSBytes(MAC)  MAC == NULL ? 0 : (MAC[0] << 8) | MAC[1]
 #define MAC_4_LSBytes(MAC)  MAC == NULL ? 0 : (((((MAC[2] << 8) | MAC[3]) << 8) | MAC[4]) << 8) | MAC[5]
+
 
 void ESPNOW_manager::unset_filter() {
 	if(this->bpf.filter != NULL) {

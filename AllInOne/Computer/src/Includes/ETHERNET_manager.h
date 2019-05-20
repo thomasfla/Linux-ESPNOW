@@ -1,19 +1,13 @@
 #ifndef ETHERNET_MANAGER_H
 #define ETHERNET_MANAGER_H
 
-#include <stdint.h>
-#include <linux/filter.h>
-#include <string.h>
-#include <sys/types.h>
-#include <stdint.h>
-#include <pthread.h>
-
-#include "ETHERNET_types.h"
 
 #include "Link_manager.h"
+#include "ETHERNET_types.h"
 
 
 #define LEN_RAWBYTES_MAX 512
+
 
 class ETHERNET_manager : public LINK_manager {
 	public:

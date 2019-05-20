@@ -2,8 +2,6 @@
 #define LINK_MANAGER_H
 
 #include "Link_types.h"
-#include "ESPNOW_types.h"
-
 
 #define LEN_RAWBYTES_MAX 512
 

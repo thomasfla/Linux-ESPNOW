@@ -1,11 +1,7 @@
-#include "ESPNOW_types.h"
-
-#include <stdint.h>
-#include <string.h>
-#include <sys/types.h>
 #include <assert.h>
 
-#include <stdio.h>
+#include "ESPNOW_types.h"
+
 
 void ESPNOW_packet::set_channel(uint16_t channel_freq) {
 this->data.radiotap.channel_freq = channel_freq;
