@@ -14,6 +14,9 @@ Etienne Arlaud
 #include "ESPNOW_manager.h"
 #include "ESPNOW_types.h"
 
+#include "ETHERNET_manager.h"
+
+
 #include "Link_manager.h"
 
 using namespace std;
@@ -38,6 +41,7 @@ int main(int argc, char **argv) {
 
 	nice(-20);
 
+	//handler = new ETHERNET_manager(argv[1], my_mac, dest_mac);
 	handler = new ESPNOW_manager(argv[1], DATARATE_24Mbps, CHANNEL_freq_9, my_mac, dest_mac, false);
 
 	((ESPNOW_manager *) handler)->set_filter(ESP_mac, dest_mac);

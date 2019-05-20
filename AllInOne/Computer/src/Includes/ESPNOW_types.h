@@ -119,10 +119,14 @@ struct IEEE80211_wlan {
 	}
 } __attribute__((__packed__));
 
-
-typedef struct : Packet_t {
+struct ESPNOW_data {
 	struct IEEE80211_radiotap radiotap;
 	struct IEEE80211_wlan wlan;
+} __attribute__((__packed__));
+
+
+struct ESPNOW_packet : Packet_t {
+	struct ESPNOW_data data;
 
 	void set_channel(uint16_t channel_freq);
 	void set_datarate(uint8_t datarate);
@@ -145,6 +149,8 @@ typedef struct : Packet_t {
 
 	static int get_radiotap_len_FromRaw(uint8_t *raw_bytes, int len);
 
-} __attribute__((__packed__)) ESPNOW_packet;
+};
+
+typedef struct ESPNOW_packet ESPNOW_packet;
 
 #endif
