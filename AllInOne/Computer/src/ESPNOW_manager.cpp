@@ -1,9 +1,8 @@
 #include <stdio.h>
-#include <stdlib.h>
-
+#include <assert.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <assert.h>
+
 
 #include "ESPNOW_manager.h"
 

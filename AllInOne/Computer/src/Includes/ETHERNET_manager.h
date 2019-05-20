@@ -2,6 +2,9 @@
 #define ETHERNET_MANAGER_H
 
 
+#include <stdlib.h>
+#include <stdint.h>
+
 #include "Link_manager.h"
 #include "ETHERNET_types.h"
 

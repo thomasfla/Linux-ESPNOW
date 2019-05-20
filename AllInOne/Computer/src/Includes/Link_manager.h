@@ -1,6 +1,8 @@
 #ifndef LINK_MANAGER_H
 #define LINK_MANAGER_H
 
+#include <thread>
+
 #include "Link_types.h"
 
 #define LEN_RAWBYTES_MAX 512

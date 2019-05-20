@@ -1,6 +1,5 @@
 #include "ETHERNET_types.h"
 
-
 #include <assert.h>
 #include <string.h>
 

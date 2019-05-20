@@ -4,10 +4,10 @@ Etienne Arlaud
 #include <assert.h>
 #include <unistd.h>
 
-#include <thread>
-
 #include "ESPNOW_manager.h"
 #include "ETHERNET_manager.h"
+
+
 
 using namespace std;
 
@@ -31,16 +31,16 @@ int main(int argc, char **argv) {
 
 	nice(-20);
 
-	handler = new ETHERNET_manager(argv[1], my_mac, dest_mac);
-	//handler = new ESPNOW_manager(argv[1], DATARATE_24Mbps, CHANNEL_freq_9, my_mac, dest_mac, false);
+	//handler = new ETHERNET_manager(argv[1], my_mac, dest_mac);
+	handler = new ESPNOW_manager(argv[1], DATARATE_24Mbps, CHANNEL_freq_9, my_mac, dest_mac, false);
 
-	//((ESPNOW_manager *) handler)->set_filter(ESP_mac, dest_mac);
+	((ESPNOW_manager *) handler)->set_filter(ESP_mac, dest_mac);
 
 	handler->set_recv_callback(&callback);
 
 	handler->start();
 
-	//((ESPNOW_manager *) handler)->bind_filter();
+	((ESPNOW_manager *) handler)->bind_filter();
 
 	while(1) {
 		std::this_thread::yield();

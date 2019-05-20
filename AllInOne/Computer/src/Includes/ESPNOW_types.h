@@ -1,10 +1,12 @@
 #ifndef ESPNOW_TYPES_H
 #define ESPNOW_TYPES_H
 
-#include <string.h>
+
 #include <stdint.h>
+#include <string.h>
 
 #include "Link_types.h"
+
 
 #define DATARATE_1Mbps 0x02
 #define DATARATE_2Mbps 0x04
