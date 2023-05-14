@@ -36,7 +36,7 @@ int ESPNOW_packet::toBytes(uint8_t *bytes, int max_len) {
 
 int ESPNOW_packet::get_radiotap_len(uint8_t *raw_bytes, int len) {
 	if(len < 4) return -1;
-	return raw_bytes[2] + (raw_bytes[3] << 8);
+	return (int)raw_bytes[2] + ((int)raw_bytes[3] << 8);
 }
 
 uint8_t* ESPNOW_packet::get_src_mac(uint8_t *raw_bytes, int len) {
